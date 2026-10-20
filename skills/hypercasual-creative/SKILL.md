@@ -17,7 +17,8 @@ Make a 9:16 gameplay ad for a mobile game that looks like the game (or better) w
 2. **House look is fixed**: soft bright daylight, wide soft shadows, GTAO contact shadows, a *little* bloom (people asked for less every time), saturated pastel palette, clearcoat toy materials, thick stroked toy typography. The template already has it; don't redesign the renderer per project. Read `references/look.md` before touching lights or materials.
 3. **Stills before video.** Show key-frame snapshots for sign-off before the first full render, and keep doing that for every big change.
 4. **Deterministic and seekable.** Sim = plain data stepped at fixed dt, replayed on backward seeks; views are stateless; FX randomness uses its own RNG so FX tweaks never change gameplay. Read `references/seek-sim.md`.
-5. **Once the hero's route/timing is approved, don't change it.** Reshape the world around it (move enemies, stamp land, retime pickups) instead.
+5. **60 fps by default.** Root `data-fps="60"` + `FPS = 60` in `timing.js`; the sim steps at 1/60, so each output frame is exactly one sim step. Drop to 30 only when a network demands it.
+6. **Once the hero's route/timing is approved, don't change it.** Reshape the world around it (move enemies, stamp land, retime pickups) instead.
 
 ## Workflow
 
@@ -25,7 +26,7 @@ Make a 9:16 gameplay ad for a mobile game that looks like the game (or better) w
 Inputs come in three shapes; mix freely. Details: `references/intake.md`.
 - **Text description of the mechanic**: ask only what changes the video (core verb, fail state, progression, the satisfying moment, hero look, game name/icon, length).
 - **Reference video** (existing ad or gameplay capture): run `scripts/ref-breakdown.sh <video>` for scene cuts + contact sheet + per-second frames; watch them, then write down mechanics, camera, HUD, pacing. If the user says "like this but…", copy the structure, not the hook.
-- **Unity project**: pull models/textures/colors/fonts/icon with `references/unity-assets.md` (FBX/prefab → GLB). Use real assets whenever they exist; placeholders only until then.
+- **Unity project**: explore it yourself with `scripts/unity/unity.mjs` (`scan` → `find`/`deps` → `export`): prefabs → GLB + material colors + converted `.anim` clips, loaded with `loadUnityModel()` from `template/src/view/unity.js`. Also take the icon and fonts. See `references/unity-assets.md`. Use real assets whenever they exist; placeholders only until then.
 
 Write `BRIEF.md` in the project: game, mechanic, hero, rivals, length (15/30 s), hook idea, payoff, packshot copy, CTA.
 
@@ -50,13 +51,13 @@ The template is a working 14 s demo (blob eats gems, combo, slow-mo near miss, b
 - `bunx hyperframes preview` opens Studio for scrubbing (it seeks, so the sim replays; this is expected).
 
 ### 5. Sound
-`bun run bake && bun scripts/sfx-sync.mjs` turns `events.json` + `sfx.json` into `<audio>` clips in `index.html` (event type or `cue:<label>` → sound). Source real SFX/music: `references/audio.md` (Pixabay via headed Chrome, pick by listening). The template ships synth placeholders only.
+The template ships **no sounds**. Every role in `sfx.json` has a Pixabay search `query` that worked before. Grab candidates with `scripts/pixabay-grab.mjs`, pick by listening (Gemini if available), and save the winners under the `src` names. Then `bun run bake && bun run sfx` turns `events.json` + `sfx.json` into `<audio>` clips in `index.html` (event type or `cue:<label>` → sound). Missing files are skipped with the grab command printed. Details: `references/audio.md`.
 
 ### 6. Render
 ```bash
-bunx hyperframes lint && bunx hyperframes render -o renders/<name>_v1.mp4
+bunx hyperframes lint && bunx hyperframes render -o renders/<name>.mp4
 ```
-Before rendering a new version over an approved one, copy the old file to `renders/<name>_v1.mp4` etc. Never overwrite the last approved cut without a backup.
+Keep one output path per creative. The review server versions every render of that path (`review/<name>/vN.mp4`), so nothing approved is lost.
 
 ### 7. Review loop
 ```bash
@@ -64,7 +65,7 @@ bun scripts/review/review.mjs renders/<name>.mp4         # user opens, comments,
 bun scripts/review/review.mjs renders/<name>.mp4 --list  # agent: open notes + annotated frame PNGs
 bun scripts/review/review.mjs renders/<name>.mp4 --done <id> --reply "moved rival 0.6 s behind"
 ```
-Read every `*.annotated.png` (exact frame + strokes) before fixing. Each note carries frame, time, and the active director beat. After fixes, re-render to the same output name so the notes stay attached, then tell the user what was resolved. Details: `references/review.md`.
+Read every `*.annotated.png` (exact frame + strokes) before fixing. Each note carries version, frame, time, and the active director beat. After fixes, **re-render to the same output path**: the running review server archives it as the next version (v2, v3…) and the user's browser switches to it with a clean sheet (old notes stay on their version). Close the fixed notes with `--done … --reply`. Details: `references/review.md`.
 
 ## Gotchas
 
@@ -80,5 +81,5 @@ Read every `*.annotated.png` (exact frame + strokes) before fixing. Each note ca
 ## Files
 
 - `template/`: the project scaffold (copied by `scripts/new-project.mjs`)
-- `scripts/new-project.mjs`, `scripts/ref-breakdown.sh`, `scripts/pixabay-grab.mjs`, `scripts/unity/`
+- `scripts/new-project.mjs`, `scripts/ref-breakdown.sh`, `scripts/pixabay-grab.mjs`, `scripts/unity/unity.mjs` (+ `fbx2glb.py`, fallback `CreativeExport.cs`)
 - `references/`: `fake-it.md`, `look.md`, `seek-sim.md`, `beats.md`, `intake.md`, `unity-assets.md`, `audio.md`, `review.md`, `case-paperio.md` (the creative this skill was distilled from)

@@ -24,13 +24,37 @@
   button.on { background: var(--accent); color: #111; border-color: var(--accent); }
   #timeline { width: 100%; height: 46px; display: block; cursor: pointer; }
   aside { grid-row: 1 / 3; grid-column: 2; background: var(--panel); border-left: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
-  aside h1 { font-size: 15px; margin: 0; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  aside h1 { font-size: 15px; margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  #ver { background: #121419; color: var(--text); border: 1px solid #2f3440; border-radius: 8px; padding: 5px 8px; font: 500 13px system-ui; }
+  #oldver { margin: 10px 16px 0; padding: 8px 10px; border-radius: 10px; background: rgba(255, 210, 58, .1); color: var(--accent); font-size: 13px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  #oldver[hidden] { display: none; }
+  #oldver button { padding: 3px 8px; font-size: 12px; }
+  #toast { position: fixed; left: 50%; top: 18px; translate: -50% 0; padding: 10px 16px; border-radius: 12px; background: var(--accent); color: #17140a; font-weight: 600; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); opacity: 0; transition: opacity .25s, translate .25s; pointer-events: none; }
+  #toast.on { opacity: 1; translate: -50% 4px; }
   aside h1 small { color: var(--dim); font-weight: 400; }
-  #compose { padding: 12px 16px; border-bottom: 1px solid var(--line); display: grid; gap: 8px; }
-  #compose textarea { width: 100%; min-height: 70px; resize: vertical; background: #13151a; color: var(--text); border: 1px solid #3a3f4c; border-radius: 8px; padding: 8px; font: inherit; }
-  #tools { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-  .swatch { width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; padding: 0; }
-  .swatch.on { border-color: #fff; }
+  #compose { padding: 14px 16px 16px; border-bottom: 1px solid var(--line); display: grid; gap: 10px; }
+  #compose textarea { width: 100%; min-height: 76px; resize: none; background: #121419; color: var(--text); border: 1px solid #2f3440; border-radius: 12px; padding: 10px 12px; font: inherit; transition: border-color .15s, box-shadow .15s; }
+  #compose textarea::placeholder { color: #626877; }
+  #compose textarea:focus { outline: none; border-color: #4a5060; box-shadow: 0 0 0 3px rgba(255, 210, 58, .12); }
+  #tools { display: flex; align-items: center; gap: 4px; padding: 4px; background: #121419; border: 1px solid #2f3440; border-radius: 12px; }
+  #tools .sep { width: 1px; align-self: stretch; margin: 4px 2px; background: #2f3440; }
+  .tool { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; background: transparent; border: 0; border-radius: 8px; color: #b8bdca; }
+  .tool:hover { background: #232733; color: var(--text); }
+  .tool.icon { width: 32px; padding: 0; justify-content: center; }
+  .tool svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .tool.on { background: var(--accent); color: #17140a; }
+  #swatches { display: inline-flex; gap: 2px; margin-right: auto; }
+  .swatch { position: relative; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: transparent; display: grid; place-items: center; }
+  .swatch::after { content: ''; width: 16px; height: 16px; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .25); transition: transform .12s; }
+  .swatch:hover { background: transparent; }
+  .swatch:hover::after { transform: scale(1.12); }
+  .swatch.on { box-shadow: inset 0 0 0 2px var(--c); }
+  .swatch.on::after { transform: scale(.78); }
+  button.primary { height: 40px; display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--accent); color: #17140a; border: 0; border-radius: 12px; font-weight: 600; transition: filter .15s, transform .05s; }
+  button.primary:hover { background: var(--accent); filter: brightness(1.06); }
+  button.primary:active { transform: translateY(1px); }
+  button.primary:disabled { opacity: .6; }
+  button.primary kbd { background: rgba(0, 0, 0, .12); border: 0; color: rgba(23, 20, 10, .7); padding: 1px 6px; border-radius: 5px; font: 600 11px system-ui; }
   #notes { overflow: auto; flex: 1; padding: 8px; }
   .note { padding: 10px; border-radius: 10px; border: 1px solid var(--line); margin-bottom: 8px; cursor: pointer; }
   .note:hover { background: #232733; }
@@ -50,7 +74,7 @@
 <body>
   <div id="stage">
     <div id="frame">
-      <video id="v" src="/video" preload="auto" playsinline></video>
+      <video id="v" preload="auto" playsinline></video>
       <canvas id="show"></canvas>
       <canvas id="ink"></canvas>
     </div>
@@ -66,25 +90,35 @@
     <canvas id="timeline"></canvas>
   </div>
   <aside>
-    <h1 id="title">Review <small></small></h1>
+    <h1 id="title"><span>Review <small></small></span><select id="ver" aria-label="Render version"></select></h1>
+    <div id="oldver" hidden>Viewing an older render. <button id="toLatest">Go to latest</button></div>
     <div id="compose">
       <textarea id="text" placeholder="What should change on this frame?"></textarea>
-      <div id="tools">
-        <button id="drawBtn" title="D">Draw</button>
+      <div id="tools" role="toolbar" aria-label="Brush">
+        <button id="drawBtn" class="tool" title="Draw (D)" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>
+          <span>Draw</span>
+        </button>
+        <span class="sep"></span>
         <span id="swatches"></span>
-        <button id="undo" title="Cmd+Z">Undo</button>
-        <button id="clear">Clear</button>
-        <button id="add" class="on" title="Cmd+Enter" style="margin-left:auto">Add note</button>
+        <span class="sep"></span>
+        <button id="undo" class="tool icon" title="Undo (⌘Z)" aria-label="Undo">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+        </button>
+        <button id="clear" class="tool icon" title="Clear drawing" aria-label="Clear drawing">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg>
+        </button>
       </div>
-      <div class="hint"><kbd>Space</kbd> play · <kbd>←</kbd><kbd>→</kbd> frame · <kbd>Shift</kbd> ×10 · <kbd>D</kbd> draw · <kbd>⌘↵</kbd> add · <kbd>[</kbd><kbd>]</kbd> prev/next note</div>
+      <button id="add" class="primary" title="Add note (⌘↵)">Add note <kbd>⌘↵</kbd></button>
     </div>
     <div id="notes"></div>
   </aside>
+  <div id="toast" role="status" aria-live="polite"></div>
 <script>
 const $ = (s) => document.querySelector(s);
 const v = $('#v'), ink = $('#ink'), show = $('#show'), tl = $('#timeline');
 const COLORS = ['#ff3b5c', '#ffd23a', '#3be27a', '#3bb8ff', '#ffffff'];
-let meta, notes = [], frame = 0, drawing = false, strokes = [], color = COLORS[0], sel = null;
+let meta, version = 0, versions = [], allNotes = [], notes = [], frame = 0, drawing = false, strokes = [], color = COLORS[0], sel = null;
 
 const fit = () => {
   const box = $('#stage').getBoundingClientRect();
@@ -96,28 +130,72 @@ const fit = () => {
   drawTimeline();
 };
 
-async function init() {
-  meta = await (await fetch('/api/meta')).json();
+const latest = () => versions[versions.length - 1]?.v ?? 0;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toast.h);
+  toast.h = setTimeout(() => t.classList.remove('on'), 3500);
+}
+function renderVersions() {
+  $('#ver').innerHTML = versions.slice().reverse().map((x) => `<option value="${x.v}">v${x.v}${x.v === latest() ? ' · latest' : ''}${x.notes ? ` · ${x.open ? x.open + ' open' : 'all done'}` : ''}</option>`).join('');
+  $('#ver').value = version;
+  $('#oldver').hidden = version === latest();
+}
+async function fetchVersions() {
+  versions = (await (await fetch('/api/versions')).json()).versions;
+}
+// Each version is its own sheet: its video, its beats, its notes.
+async function loadVersion(n) {
+  version = n;
+  meta = await (await fetch(`/api/meta?v=${n}`)).json();
   for (const c of [ink, show]) { c.width = meta.width; c.height = meta.height; }
   $('#title small').textContent = `${meta.name} · ${meta.fps}fps`;
   $('#frs').textContent = meta.frames - 1;
+  v.pause();
+  v.src = `/video?v=${n}`;
+  strokes = [];
+  redrawInk();
+  sel = null;
+  renderVersions();
+  await reload();
+  fit();
+  goto(0);
+}
+// A re-render shows up as a new version: jump to it if we were on the latest.
+setInterval(async () => {
+  const before = latest();
+  await fetchVersions();
+  if (latest() > before) {
+    if (version === before) {
+      await loadVersion(latest());
+      toast(`New render v${latest()} loaded`);
+    } else toast(`New render v${latest()} is available`);
+  }
+  renderVersions();
+}, 2500);
+
+async function init() {
+  await fetchVersions();
   COLORS.forEach((c) => {
     const b = document.createElement('button');
     b.className = 'swatch' + (c === color ? ' on' : '');
-    b.style.background = c;
+    b.style.setProperty('--c', c);
     b.setAttribute('aria-label', `Brush ${c}`);
     b.onclick = () => { color = c; document.querySelectorAll('.swatch').forEach((x) => x.classList.toggle('on', x === b)); setDraw(true); };
     $('#swatches').appendChild(b);
   });
-  await reload();
   addEventListener('resize', fit);
-  fit();
-  goto(0);
+  $('#ver').onchange = (e) => loadVersion(parseInt(e.target.value, 10));
+  $('#toLatest').onclick = () => loadVersion(latest());
+  await loadVersion(latest());
   tick();
 }
 
 async function reload() {
-  notes = (await (await fetch('/api/notes')).json()).sort((a, b) => a.frame - b.frame);
+  allNotes = await (await fetch('/api/notes')).json();
+  notes = allNotes.filter((n) => n.version === version).sort((a, b) => a.frame - b.frame);
   renderNotes();
   drawTimeline();
   paintShown();
@@ -125,9 +203,19 @@ async function reload() {
 
 // Frame clock: rVFC gives the presented frame's media time during playback.
 const timeOf = (f) => (f + 0.5) / meta.fps;
+// Coalesce seeks while scrubbing: one in flight, only the latest queued.
+let seeking = false, pending = null;
+function flushSeek() {
+  if (pending === null) return;
+  seeking = true;
+  v.currentTime = timeOf(pending);
+  pending = null;
+}
+v.addEventListener('seeked', () => { seeking = false; flushSeek(); paintShown(); });
 function goto(f) {
   frame = Math.max(0, Math.min(meta.frames - 1, f));
-  v.currentTime = timeOf(frame);
+  pending = frame;
+  if (!seeking) flushSeek();
   update();
 }
 function tick() {
@@ -177,13 +265,20 @@ function drawTimeline() {
   ctx.fillRect(0, H * 0.35, W, H * 0.3);
   // Beat spans from director cues.
   ctx.font = `${10 * d}px system-ui`;
+  // Labels drop to a second row when they would collide with the previous one.
+  const rowEnd = [-Infinity, -Infinity];
   for (const e of meta.events) {
     const fx = x(Math.round(e.vt * meta.fps));
     if (e.type === 'cue') {
       ctx.fillStyle = '#ffd23a88';
       ctx.fillRect(fx, 0, d, H);
-      ctx.fillStyle = '#ffd23a';
-      ctx.fillText(e.label, fx + 3 * d, 10 * d);
+      const w = ctx.measureText(e.label).width;
+      const row = fx > rowEnd[0] ? 0 : fx > rowEnd[1] ? 1 : -1;
+      if (row >= 0) {
+        ctx.fillStyle = '#ffd23a';
+        ctx.fillText(e.label, fx + 3 * d, (row ? 44 : 10) * d);
+        rowEnd[row] = fx + w + 8 * d;
+      }
     } else {
       ctx.fillStyle = '#7b8bd8';
       ctx.fillRect(fx, H * 0.62, d, H * 0.12);
@@ -212,6 +307,7 @@ tl.addEventListener('pointerup', () => (scrubbing = false));
 function setDraw(on) {
   drawing = on;
   $('#drawBtn').classList.toggle('on', on);
+  $('#drawBtn').setAttribute('aria-pressed', on);
   ink.classList.toggle('draw', on);
   if (on) v.pause(), update();
 }
@@ -247,7 +343,7 @@ async function addNote() {
   const text = $('#text').value.trim();
   if (!text && !strokes.length) return;
   v.pause();
-  const body = { frame, text, author: localStorage.reviewer || '' };
+  const body = { version, frame, text, author: localStorage.reviewer || '' };
   if (strokes.length) body.png = ink.toDataURL('image/png');
   $('#add').disabled = true;
   await fetch('/api/notes', { method: 'POST', body: JSON.stringify(body) });
@@ -256,13 +352,17 @@ async function addNote() {
   strokes = [];
   redrawInk();
   setDraw(false);
+  await fetchVersions();
+  renderVersions();
   await reload();
 }
 
 function renderNotes() {
   const box = $('#notes');
   box.innerHTML = '';
-  if (!notes.length) box.innerHTML = '<p class="hint" style="padding:8px">No notes yet. Pause on a frame, type and/or draw, then Add note.</p>';
+  if (!notes.length) box.innerHTML = version > 1
+    ? `<p class="hint" style="padding:8px">Fresh render v${version}, no notes yet. Earlier notes stay with their version (menu above).</p>`
+    : '<p class="hint" style="padding:8px">No notes yet. Pause on a frame, type and/or draw, then Add note.</p>';
   for (const n of notes) {
     const el = document.createElement('div');
     el.className = `note ${n.status}` + (n === sel ? ' sel' : '');

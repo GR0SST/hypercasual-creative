@@ -29,5 +29,5 @@ pickup pop + particles · number popups (merge bursts) · camera punch on small 
 Don't copy a reference ad's hook one-to-one; reuse its structure.
 
 ## Formats
-- Master: 1080×1920, 30 fps, H.264. 1:1 and 16:9 variants are reframes (camera distance + HUD layout), not crops. Plan the HUD so it survives that.
+- Master: 1080×1920, **60 fps by default** (root `data-fps="60"`, `FPS` in `timing.js`), H.264. Use 30 fps only if a network requires it (`hyperframes render -f 30`). 1:1 and 16:9 variants are reframes (camera distance + HUD layout), not crops. Plan the HUD so it survives that.
 - Keep key action and text out of the bottom ~20 % and top ~12 % (platform UI overlays). Check the current specs of the target ad network before delivery.

@@ -1,7 +1,7 @@
 // events.json + sfx.json -> <audio> elements inside #audio-track of index.html,
 // so Studio preview plays the SFX and `hyperframes render` mixes them.
 //   bun run bake && bun scripts/sfx-sync.mjs
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
 const lengths = {};
@@ -21,13 +21,20 @@ const cfg = JSON.parse(readFileSync('sfx.json', 'utf8'));
 const lastAt = {};
 const tags = [];
 let n = 0;
-if (cfg.music) {
+// Roles without a file yet: skip, and say how to get one.
+const missing = new Map();
+const have = (s, role) => {
+  if (existsSync(s.src)) return true;
+  missing.set(s.src, { role, query: s.query });
+  return false;
+};
+if (cfg.music && have(cfg.music, 'music')) {
   tags.push(`<audio id="sfx-music" src="${cfg.music.src}" data-start="0" data-duration="${cfg.music.duration ?? lengthOf(cfg.music.src).toFixed(3)}" data-track-index="9" data-volume="${cfg.music.volume ?? 0.4}"></audio>`);
 }
 for (const e of events) {
   const key = e.type === 'cue' ? `cue:${e.label}` : e.type;
   const s = cfg.sounds[key];
-  if (!s) continue;
+  if (!s || !have(s, key)) continue;
   if (s.minGap && lastAt[key] !== undefined && e.vt - lastAt[key] < s.minGap) continue;
   lastAt[key] = e.vt;
   const len = lengthOf(s.src);
@@ -38,3 +45,9 @@ const html = readFileSync('index.html', 'utf8');
 const out = html.replace(/<div id="audio-track">[\s\S]*?<\/div>/, `<div id="audio-track">\n        ${tags.join('\n        ')}\n      </div>`);
 writeFileSync('index.html', out);
 console.log(`${tags.length} audio clips written to index.html`);
+if (missing.size) {
+  console.log(`\nmissing sounds (skipped):`);
+  for (const [src, { role, query }] of missing) {
+    console.log(`  ${role.padEnd(16)} ${src}${query ? `\n    bun <skill>/scripts/pixabay-grab.mjs "https://pixabay.com/${query}/" 6 assets/audio/raw` : ''}`);
+  }
+}

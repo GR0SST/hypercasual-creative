@@ -1,12 +1,13 @@
 {
-  "_doc": "event type (or cue:<label>) -> sound. minGap merges bursts of the same sound. music is an optional bed for the whole cut.",
-  "music": null,
+  "_doc": "event type (or cue:<label>) -> sound file. Files come from Pixabay (scripts/pixabay-grab.mjs); `query` is the search that worked on past creatives. Missing files are skipped by sfx-sync with a hint. minGap merges bursts.",
+  "music": { "src": "assets/audio/music.mp3", "volume": 0.4, "query": "music/search/energetic%20upbeat%20game" },
   "sounds": {
-    "gem": { "src": "assets/audio/pop.mp3", "volume": 0.5, "minGap": 0.07 },
-    "combo": { "src": "assets/audio/combo.mp3", "volume": 0.8 },
-    "bigGem": { "src": "assets/audio/big.mp3", "volume": 0.9 },
-    "cue:slowmo-in": { "src": "assets/audio/whoosh.mp3", "volume": 0.7 },
-    "cue:slowmo-out": { "src": "assets/audio/whoosh.mp3", "volume": 0.5 },
-    "cue:tap": { "src": "assets/audio/tap.mp3", "volume": 0.8 }
+    "gem": { "src": "assets/audio/pop.mp3", "volume": 0.5, "minGap": 0.07, "query": "sound-effects/search/cartoon%20pop" },
+    "combo": { "src": "assets/audio/combo.mp3", "volume": 0.8, "query": "sound-effects/search/coin%20collect" },
+    "bigGem": { "src": "assets/audio/payoff.mp3", "volume": 0.9, "query": "sound-effects/search/level%20up" },
+    "cue:slowmo-in": { "src": "assets/audio/slowmo.mp3", "volume": 0.8, "query": "sound-effects/search/slow%20motion" },
+    "cue:slowmo-out": { "src": "assets/audio/whoosh.mp3", "volume": 0.6, "query": "sound-effects/search/whoosh" },
+    "cue:packshot": { "src": "assets/audio/logo.mp3", "volume": 0.8, "query": "sound-effects/search/level%20up" },
+    "cue:tap": { "src": "assets/audio/tap.mp3", "volume": 0.8, "query": "sound-effects/search/combo%20game" }
   }
 }

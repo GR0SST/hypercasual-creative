@@ -19,13 +19,12 @@ If a video-capable model is available (e.g. Gemini with `GEMINI_API_KEY`), also 
 Write down: mechanic, camera (angle, follow, zooms), HUD elements, beat timings, the hook, the packshot, the music energy. Build our version of the structure; don't clone the hook.
 
 ## C. Unity project
-Goal: real hero/props/textures/colors/fonts/icon in the creative. See `unity-assets.md`.
-1. Find the hero, enemies and props: `Assets/**/Prefabs`, `Assets/**/Models`, `*.fbx`, `*.prefab`. Grep scene/prefab YAML for names the user mentions.
-2. Colors: read materials (`*.mat` YAML, `_BaseColor` / `_Color`), and gameplay configs (ScriptableObjects `*.asset`) for skins/palettes.
-3. UI: fonts (`*.ttf/*.otf`), app icon (`ProjectSettings` → icons, or `Assets/**/Icon*`), logo sprites.
-4. Export models to GLB (batch-mode script or FBX2glTF). Put them in `assets/models/`, load with `GLTFLoader` before the first seek, and keep the root/body split from `view/actors.js`.
-5. Custom shaders don't survive export: rebuild the look with `MeshPhysicalMaterial` using the material's colors/textures (house look wins over the exact shader).
-6. Gameplay code is a reference only. Read it for speeds, sizes and rules, then fake (`fake-it.md`).
+Goal: real hero/props/colors/fonts/icon/animations in the creative. The agent digs through the project itself with `scripts/unity/unity.mjs` (read-only, no Unity install needed). Full guide: `unity-assets.md`.
+1. `scan`: name, icon, fonts, hero/enemy/collectible candidates.
+2. `find` / `deps`: pick the right prefab (variants and old copies are common), check colors and what's hidden in the game.
+3. `export` → GLB + `.unity.json` manifest + converted `.anim` clips into `assets/models/`, then `loadUnityModel()` in the view.
+4. Copy the icon and the game's font into `assets/` for the packshot/HUD.
+5. Gameplay code is a reference only. Read it for speeds, sizes and rules, then fake (`fake-it.md`).
 
 ## BRIEF.md template
 ```md

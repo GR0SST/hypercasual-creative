@@ -23,4 +23,4 @@ hf-seek(t) → Seekable.seek(t) → view.sync(world) → hud.sync(world) → ren
 
 ## Verify
 - `bunx hyperframes snapshot --at a,b,c --no-end` with out-of-order times should look identical to a sequential render at those times.
-- Render, then compare frames on both sides of a worker boundary (420 frames / 4 workers → frames 104/105). They must be continuous.
+- Render, then compare frames on both sides of a worker boundary (14 s × 60 fps = 840 frames / 4 workers → frames 209/210). They must be continuous.
