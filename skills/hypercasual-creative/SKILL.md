@@ -47,6 +47,7 @@ The template is a working 14 s demo (blob eats gems, combo, slow-mo near miss, b
 
 ### 4. Iterate on timing headless, then stills
 - `bun run bake` prints positions/score per 0.5 s and every cue/event. Fix beat timing here first; it's instant.
+- `bun run map 2,4.75,5.6,9.5` draws a top-down map of the sim at those times → `renders/map.png` (planned and travelled hero path, pickups, rivals and their runs, particles). Use it to check *where* things are on each beat (does the threat cross behind the hero, are pickups on the route) without rendering. Add the game's own layers (territory, trails…) in `src/sim/map.mjs` → GAME LAYERS.
 - `bunx hyperframes snapshot --at 1,2.2,5.4,9.5,12.5 --no-end` → look at the contact sheet, then show the user the frames in chat for sign-off.
 - `bunx hyperframes preview` (Studio) is for **your own** debugging only. Don't send its link to the user; the user's review surface is step 7.
 

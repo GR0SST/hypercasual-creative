@@ -29,7 +29,7 @@ It presses each Play button, captures the preview MP3 URL, and downloads it thro
 | hook (sky drop) | `wind%20rush%20falling`, `fire%20whoosh`, `meteor%20fire`, `heavy%20impact%20boom`, `ground%20impact`, `birds%20flock%20flying` | |
 
 ## Picking
-Listen, don't guess from titles. If a model that can hear audio is available (Gemini), give it the candidates per role with the role description ("short juicy pop for a gem pickup, under 0.2 s") and ask for a ranking. Otherwise make a quick contact track (`ffmpeg concat` with 0.5 s gaps) and let the user pick.
+Listen if you can: if any tool or MCP that takes audio input is available (e.g. Gemini), give it the candidates per role with the role description ("short juicy pop for a gem pickup, under 0.2 s") and ask for a ranking. If nothing can listen, that's fine: pick by the signal (short length, sharp attack, loudness via ffmpeg `astats`/`silencedetect`), trim leading silence, keep the alternatives in `assets/audio/raw/<role>/`, and say in the summary that sounds were picked unheard. Don't block on the user for this.
 
 Roles every creative needs: pickup pop, combo/streak, big payoff, whoosh (slow-mo in/out), impact/kill, UI pop (packshot elements), CTA tap, music bed (energetic, starts strong; pick the drop for the payoff).
 

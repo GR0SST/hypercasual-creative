@@ -9,7 +9,8 @@
     "snapshot": "bunx hyperframes snapshot",
     "render": "bunx hyperframes render",
     "review": "bun scripts/review/review.mjs",
-    "sfx": "bun scripts/sfx-sync.mjs"
+    "sfx": "bun scripts/sfx-sync.mjs",
+    "map": "bun src/sim/map.mjs"
   },
   "dependencies": {
     "gsap": "3.14.2",

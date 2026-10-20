@@ -22,6 +22,7 @@ export function buildScenario(seed = 7) {
   // pickups and threats sit exactly where the hero will be on the beat.
   const path = preroll(p, 14);
   const at = (t) => path[Math.min(path.length - 1, Math.round(t * 60))];
+  w.debug = { path }; // drawn by src/sim/map.mjs
 
   const line = (t0, t1, every = 0.2, side = 0) => {
     for (let t = t0; t <= t1; t += every) {
