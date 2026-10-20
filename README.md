@@ -2,8 +2,6 @@
 
 An agent skill for making **video ad creatives for hypercasual mobile games**: a scripted three.js gameplay scene in a soft toy-like look, rendered with [HyperFrames](https://hyperframes.heygen.com), plus a frame-accurate review tool where you can comment and draw on any frame.
 
-![demo frames](docs/preview.jpg)
-
 ## What you get
 - **Template project** (1080×1920, 60 fps), a working 14 s demo: hero eats gems, combo, slow-mo near miss, big payoff, packshot with CTA. Replace the mechanic and keep the pipeline.
 - **House look**: bright soft daylight, wide soft shadows, GTAO contact shadows, light bloom, clearcoat toy materials, stroked toy typography.
