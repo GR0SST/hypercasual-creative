@@ -13,9 +13,10 @@ Make a 9:16 gameplay ad for a mobile game that looks like the game (or better) w
 
 ## Core rules
 
+0. **Beat table first, then STOP.** Before building anything (no scenario code, no renders), post the beat table in chat and end your turn. Wait for the user's OK or edits. A request like "make a creative for X" is NOT approval of the beats. Skip this only if the user explicitly says to build without approval.
 1. **It is a video, not a game. Fake it.** Re-implement only the rules that are cheaper to run than to fake. Everything that has to land on a beat (a kill, a near miss, a big capture, a growth burst) is a director cue that can override any rule: teleport, pre-stamp land, force an event, slow-mo, hide a swap under an FX burst. If faking reads the same on video, fake it. Read `references/fake-it.md`.
 2. **House look is fixed**: soft bright daylight, wide soft shadows, GTAO contact shadows, a *little* bloom (people asked for less every time), saturated pastel palette, clearcoat toy materials, thick stroked toy typography. The template already has it; don't redesign the renderer per project. Read `references/look.md` before touching lights or materials.
-3. **Stills in chat, then video in OUR review tool.** Show key-frame snapshots in chat for layout sign-off. After that, the user reviews video only in `scripts/review` (frame comments + drawing), **never in HyperFrames Studio/preview**. Renders are cheap (≈1.2 s per second of video), so don't ask permission to render a draft: render it, start the review server, post its link. This overrides the HyperFrames skills' "open Studio preview, then ask before render" step.
+3. **Stills in chat, then video in OUR review tool.** Show key-frame snapshots in chat for layout sign-off. After that, the user reviews video only in `scripts/review` (frame comments + drawing), **never in HyperFrames Studio/preview**. Renders are cheap (≈1.2 s per second of video), so don't ask permission to render a draft: render it, start the review server, post its link. (This doesn't replace rule 0: the beat table is still approved before building.) This overrides the HyperFrames skills' "open Studio preview, then ask before render" step.
 4. **Deterministic and seekable.** Sim = plain data stepped at fixed dt, replayed on backward seeks; views are stateless; FX randomness uses its own RNG so FX tweaks never change gameplay. Read `references/seek-sim.md`.
 5. **60 fps by default.** Root `data-fps="60"` + `FPS = 60` in `timing.js`; the sim steps at 1/60, so each output frame is exactly one sim step. Drop to 30 only when a network demands it.
 6. **Once the hero's route/timing is approved, don't change it.** Reshape the world around it (move enemies, stamp land, retime pickups) instead.
@@ -31,7 +32,16 @@ Inputs come in three shapes; mix freely. Details: `references/intake.md`.
 Write `BRIEF.md` in the project: game, mechanic, hero, rivals, length (15/30 s), hook idea, payoff, packshot copy, CTA.
 
 ### 2. Beat sheet
-Write the beats with video times into the header of `src/sim/scenario.js` and show them as a table in chat. Pattern library and timing norms: `references/beats.md`. Get approval before building.
+**Hard gate.** Post the beats as a table in chat: time range · what happens on screen · why (hook / loop / escalation / clutch / payoff / packshot). Add the total length and what's placeholder (hero, enemies, icon, sound). Then **end your turn and wait**. Don't scaffold the scenario, write gameplay or render until the user approves or edits the table. Revise only the rows they name and re-post. Pattern library and timing norms: `references/beats.md`.
+
+| Time | On screen | Why |
+|---|---|---|
+| 0–3 s | Sky drop onto the arena, camera lands on the hero | hook |
+| 3–8 s | Three fast captures, % climbs | core loop |
+| … | … | … |
+| 22–26 s | Blurred game, icon, logo, PLAY NOW, hand taps | packshot |
+
+After approval, write the same beats with video times into the header of `src/sim/scenario.js`.
 
 ### 3. Scaffold
 ```bash
