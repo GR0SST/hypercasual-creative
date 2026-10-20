@@ -3,7 +3,7 @@
 ## Pipeline
 1. `bun run bake` writes `events.json`: every gameplay event plus every director cue (`{type:'cue', label}`), in video time (`vt`).
 2. `sfx.json` maps an event type or `cue:<label>` to `{src, volume, minGap}`, plus an optional `music: {src, volume}` bed.
-3. `bun scripts/sfx-sync.mjs` rewrites `<div id="audio-track">` in `index.html` with one `<audio>` per hit (exact duration via ffprobe, greedy track lanes so nothing overlaps on a track). Studio preview plays it; `hyperframes render` mixes it.
+3. `bun scripts/sfx-sync.mjs` rewrites `<div id="audio-track">` in `index.html` with one `<audio>` per hit (exact duration via ffprobe, greedy track lanes so nothing overlaps on a track). `hyperframes render` mixes it, so the user hears it in the review tool.
 4. For ducking the music under slow-mo, fades and EQ, use the HyperFrames audio features (`data-automation` volume lanes, `<hf-audio-group>`): see the `hyperframes-audio` skill.
 
 Overlay-only beats (packshot taps, logo slam) should also be director cues, so they land in `events.json` and get sound from the same table.

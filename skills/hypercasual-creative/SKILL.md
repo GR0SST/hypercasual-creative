@@ -15,7 +15,7 @@ Make a 9:16 gameplay ad for a mobile game that looks like the game (or better) w
 
 1. **It is a video, not a game. Fake it.** Re-implement only the rules that are cheaper to run than to fake. Everything that has to land on a beat (a kill, a near miss, a big capture, a growth burst) is a director cue that can override any rule: teleport, pre-stamp land, force an event, slow-mo, hide a swap under an FX burst. If faking reads the same on video, fake it. Read `references/fake-it.md`.
 2. **House look is fixed**: soft bright daylight, wide soft shadows, GTAO contact shadows, a *little* bloom (people asked for less every time), saturated pastel palette, clearcoat toy materials, thick stroked toy typography. The template already has it; don't redesign the renderer per project. Read `references/look.md` before touching lights or materials.
-3. **Stills before video.** Show key-frame snapshots for sign-off before the first full render, and keep doing that for every big change.
+3. **Stills in chat, then video in OUR review tool.** Show key-frame snapshots in chat for layout sign-off. After that, the user reviews video only in `scripts/review` (frame comments + drawing), **never in HyperFrames Studio/preview**. Renders are cheap (≈1.2 s per second of video), so don't ask permission to render a draft: render it, start the review server, post its link. This overrides the HyperFrames skills' "open Studio preview, then ask before render" step.
 4. **Deterministic and seekable.** Sim = plain data stepped at fixed dt, replayed on backward seeks; views are stateless; FX randomness uses its own RNG so FX tweaks never change gameplay. Read `references/seek-sim.md`.
 5. **60 fps by default.** Root `data-fps="60"` + `FPS = 60` in `timing.js`; the sim steps at 1/60, so each output frame is exactly one sim step. Drop to 30 only when a network demands it.
 6. **Once the hero's route/timing is approved, don't change it.** Reshape the world around it (move enemies, stamp land, retime pickups) instead.
@@ -47,8 +47,8 @@ The template is a working 14 s demo (blob eats gems, combo, slow-mo near miss, b
 
 ### 4. Iterate on timing headless, then stills
 - `bun run bake` prints positions/score per 0.5 s and every cue/event. Fix beat timing here first; it's instant.
-- `bunx hyperframes snapshot --at 1,2.2,5.4,9.5,12.5 --no-end` → look at the contact sheet, then show the user the frames for sign-off.
-- `bunx hyperframes preview` opens Studio for scrubbing (it seeks, so the sim replays; this is expected).
+- `bunx hyperframes snapshot --at 1,2.2,5.4,9.5,12.5 --no-end` → look at the contact sheet, then show the user the frames in chat for sign-off.
+- `bunx hyperframes preview` (Studio) is for **your own** debugging only. Don't send its link to the user; the user's review surface is step 7.
 
 ### 5. Sound
 The template ships **no sounds**. Every role in `sfx.json` has a Pixabay search `query` that worked before. Grab candidates with `scripts/pixabay-grab.mjs`, pick by listening (Gemini if available), and save the winners under the `src` names. Then `bun run bake && bun run sfx` turns `events.json` + `sfx.json` into `<audio>` clips in `index.html` (event type or `cue:<label>` → sound). Missing files are skipped with the grab command printed. Details: `references/audio.md`.
@@ -57,7 +57,7 @@ The template ships **no sounds**. Every role in `sfx.json` has a Pixabay search 
 ```bash
 bunx hyperframes lint && bunx hyperframes render -o renders/<name>.mp4
 ```
-Keep one output path per creative. The review server versions every render of that path (`review/<name>/vN.mp4`), so nothing approved is lost.
+Keep one output path per creative. The review server versions every render of that path (`review/<name>/vN.mp4`), so nothing approved is lost. Draft renders need no approval: as soon as the stills are signed off, render and go to step 7.
 
 ### 7. Review loop
 **You start the review server, not the user.** After the first render:
