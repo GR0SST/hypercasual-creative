@@ -1,0 +1,12 @@
+{
+  "_doc": "event type (or cue:<label>) -> sound. minGap merges bursts of the same sound. music is an optional bed for the whole cut.",
+  "music": null,
+  "sounds": {
+    "gem": { "src": "assets/audio/pop.mp3", "volume": 0.5, "minGap": 0.07 },
+    "combo": { "src": "assets/audio/combo.mp3", "volume": 0.8 },
+    "bigGem": { "src": "assets/audio/big.mp3", "volume": 0.9 },
+    "cue:slowmo-in": { "src": "assets/audio/whoosh.mp3", "volume": 0.7 },
+    "cue:slowmo-out": { "src": "assets/audio/whoosh.mp3", "volume": 0.5 },
+    "cue:tap": { "src": "assets/audio/tap.mp3", "volume": 0.8 }
+  }
+}

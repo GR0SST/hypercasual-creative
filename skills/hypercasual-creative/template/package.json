@@ -1,0 +1,21 @@
+{
+  "name": "hypercasual-creative",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bake": "bun src/sim/bake.mjs",
+    "preview": "bunx hyperframes preview",
+    "check": "bunx hyperframes check --no-contrast",
+    "snapshot": "bunx hyperframes snapshot",
+    "render": "bunx hyperframes render",
+    "review": "bun scripts/review/review.mjs",
+    "sfx": "bun scripts/sfx-sync.mjs"
+  },
+  "dependencies": {
+    "gsap": "3.14.2",
+    "three": "0.181.2"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^25.14.0"
+  }
+}

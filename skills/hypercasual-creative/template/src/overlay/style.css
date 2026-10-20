@@ -1,0 +1,180 @@
+@font-face {
+  font-family: 'Lilita';
+  src: url('../../assets/fonts/LilitaOne.ttf') format('truetype');
+  font-display: block;
+}
+@font-face {
+  font-family: 'Fredoka';
+  src: url('../../assets/fonts/Fredoka.ttf') format('truetype');
+  font-weight: 300 700;
+  font-display: block;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html,
+body {
+  width: 1080px;
+  height: 1920px;
+  overflow: hidden;
+  background: #0d1b26;
+}
+#root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Lilita', 'Fredoka', system-ui, sans-serif;
+}
+#gl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* HUD: thick stroked toy type, offset drop shadow (no blur). */
+.hud-score {
+  position: absolute;
+  top: 120px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 40px 14px 22px;
+  border-radius: 60px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 0 rgba(60, 20, 120, 0.18);
+  font-size: 72px;
+  color: #3a2470;
+}
+.hud-score i {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #a58bff, #6a46ff);
+  rotate: 45deg;
+  scale: 0.72;
+}
+.pop {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 64px;
+  color: #fff;
+  -webkit-text-stroke: 10px #6a46ff;
+  paint-order: stroke fill;
+  white-space: nowrap;
+  filter: drop-shadow(0 6px 0 rgba(60, 20, 120, 0.35));
+}
+.pop-big {
+  font-size: 104px;
+  color: #ffe14a;
+  -webkit-text-stroke: 14px #ff5a1f;
+}
+.pop-alert {
+  font-size: 150px;
+  color: #ff3d5a;
+  -webkit-text-stroke: 14px #fff;
+}
+
+/* Packshot. Centering uses left/right + margin auto, never a CSS transform
+   (GSAP owns transforms; hyperframes lint: gsap_css_transform_conflict). */
+.ps > * {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  opacity: 0;
+}
+.ps-veil {
+  inset: 0;
+  margin: 0;
+  background: radial-gradient(ellipse at 50% 45%, rgba(255, 255, 255, 0.25), rgba(20, 40, 90, 0.35));
+}
+.ps-rays {
+  top: 160px;
+  width: 1400px;
+  height: 1400px;
+  left: -160px;
+  right: auto;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.35) 0deg 9deg, transparent 9deg 22.5deg);
+  border-radius: 50%;
+  mask-image: radial-gradient(circle, #000 25%, transparent 68%);
+}
+.ps-icon {
+  top: 470px;
+  width: 300px;
+  height: 300px;
+  border-radius: 72px;
+  background: linear-gradient(160deg, #ff7ab0, #ff3d7a);
+  box-shadow: 0 18px 0 rgba(120, 20, 60, 0.25), inset 0 -16px 0 rgba(0, 0, 0, 0.12);
+  display: grid;
+  place-items: center;
+  font-size: 110px;
+  color: #fff;
+  opacity: 1;
+}
+.ps-logo {
+  top: 830px;
+  width: 1000px;
+  text-align: center;
+  font-size: 150px;
+  line-height: 1;
+  color: #fff;
+  -webkit-text-stroke: 18px #3a2470;
+  paint-order: stroke fill;
+  filter: drop-shadow(0 12px 0 rgba(30, 10, 70, 0.4));
+}
+.ps-tag {
+  top: 1020px;
+  width: 1000px;
+  text-align: center;
+  font-size: 64px;
+  color: #fff;
+  -webkit-text-stroke: 10px #3a2470;
+  paint-order: stroke fill;
+}
+.ps-btn {
+  top: 1300px;
+  width: 640px;
+  height: 170px;
+  opacity: 1;
+}
+.ps-btn-face {
+  width: 100%;
+  height: 100%;
+  border-radius: 90px;
+  background: linear-gradient(#5ef07a, #22c24a);
+  box-shadow: 0 16px 0 #138a33, 0 28px 30px rgba(0, 0, 0, 0.2);
+  display: grid;
+  place-items: center;
+  font-size: 92px;
+  color: #fff;
+  -webkit-text-stroke: 8px #138a33;
+  paint-order: stroke fill;
+}
+.ps-ripple {
+  top: 1185px;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  border: 14px solid rgba(255, 255, 255, 0.9);
+}
+.ps-hand {
+  top: 1400px;
+  width: 200px;
+  left: 560px;
+  right: auto;
+  font-size: 190px;
+  line-height: 1;
+}

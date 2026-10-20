@@ -1,0 +1,46 @@
+# hypercasual-creative
+
+An agent skill for making **video ad creatives for hypercasual mobile games**: a scripted three.js gameplay scene in a soft toy-like look, rendered with [HyperFrames](https://hyperframes.heygen.com), plus a frame-accurate review tool where you can comment and draw on any frame.
+
+![demo frames](docs/preview.jpg)
+
+## What you get
+- **Template project**, a working 14 s demo: hero eats gems, combo, slow-mo near miss, big payoff, packshot with CTA. Replace the mechanic and keep the pipeline.
+- **House look**: bright soft daylight, wide soft shadows, GTAO contact shadows, light bloom, clearcoat toy materials, stroked toy typography.
+- **Director layer**: gameplay is faked where faking is cheaper. Cues land beats exactly, override rules, and drive slow-mo and camera.
+- **Seekable sim**: a stateful sim replayed on seek, so it works with HyperFrames Studio scrubbing and parallel render workers.
+- **SFX from events**: the sim's event log becomes audio clips automatically.
+- **Review tool**: comments + brush on exact frames. The agent gets frame, time, beat and an annotated PNG per note.
+- **Intake helpers**: reference-video breakdown (shots, per-second frames, contact sheet), Unity → GLB export, Pixabay SFX grabber.
+
+## Install
+```bash
+npx skills add GR0SST/hypercasual-creative      # or: bunx skills add GR0SST/hypercasual-creative
+```
+Manual: clone and link `skills/hypercasual-creative` into `~/.claude/skills/` (Claude Code) or `~/.agents/skills/`.
+
+Also recommended: the HyperFrames skills (`npx skills add heygen-com/hyperframes`).
+
+Requirements: [bun](https://bun.sh), ffmpeg/ffprobe, Google Chrome, HyperFrames CLI (`bunx hyperframes`, fetched on demand).
+
+## Use
+Ask your agent, e.g.:
+- "Make a 30 s creative for our game: you swipe to steer a snake that eats fruit and grows; payoff is eating a giant watermelon."
+- "Here is a reference ad (ref.mp4), do the same structure for our game, assets are in ~/Projects/MyGame (Unity)."
+
+Manual loop:
+```bash
+bun skills/hypercasual-creative/scripts/new-project.mjs my-creative
+cd my-creative
+bun run bake                                     # headless sim: beat log + events.json
+bunx hyperframes snapshot --at 1,5.4,9.5,12.5    # stills for sign-off
+bun run sfx                                      # events -> audio clips
+bunx hyperframes render -o renders/v1.mp4
+bun run review renders/v1.mp4                    # comment + draw on frames
+```
+
+## Русский
+Скилл для агентов (Claude Code и другие): делает видео-креативы для гиперказуальных игр. Сцена на three.js в мягком «игрушечном» стиле, рендер через HyperFrames, свой ревью-тул с комментариями и рисованием по кадрам. Механики не повторяем один в один, а фейкуем через режиссёрский слой: это видео, а не игра. На вход принимает описание механики, референс-видео или Unity-проект (оттуда берём ассеты).
+
+## License
+MIT. Bundled fonts: SIL OFL 1.1.
