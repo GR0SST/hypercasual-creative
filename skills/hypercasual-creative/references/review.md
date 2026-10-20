@@ -5,10 +5,13 @@
 ## Versions
 The server watches the video path it was started with. Each time that file changes (the agent re-rendered after fixes), it waits until the file stops growing, archives it as the next version (`review/<name>/v2.mp4`, with its own proxy and `events.json` snapshot), and every open browser on the latest version switches to it with a toast ("New render v2 loaded"). Notes belong to the version they were made on, so the new render starts with a clean sheet. Older versions and their notes stay one click away in the version menu.
 
-## User side
+## Starting it (agent)
+The agent starts the server in the background after the first render and posts `http://localhost:<port>/` in chat. The user never runs commands. Reuse a running server (`curl -s localhost:5199/api/versions` returns its video `name`); use `--port` for a second video. Keep it running across versions.
 ```bash
-bun scripts/review/review.mjs renders/<name>.mp4
+bun run review renders/<name>.mp4 --no-open
 ```
+
+## User side
 - Space play/pause · ←/→ one frame (Shift = 10) · `[` `]` jump between notes · D toggles the brush · ⌘Z undo stroke · ⌘↵ adds the note.
 - Pause on a frame, type what's wrong, optionally circle/arrow it with the brush, Add note.
 - Notes show as dots on the timeline (red open, green done); yellow lines are director beats.

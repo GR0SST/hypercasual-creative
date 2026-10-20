@@ -60,12 +60,20 @@ bunx hyperframes lint && bunx hyperframes render -o renders/<name>.mp4
 Keep one output path per creative. The review server versions every render of that path (`review/<name>/vN.mp4`), so nothing approved is lost.
 
 ### 7. Review loop
+**You start the review server, not the user.** After the first render:
+1. Check whether one is already up for this video: `curl -s localhost:5199/api/versions`. If it answers with this video's `name`, reuse it; it picks up new renders by itself.
+2. Otherwise start it **in the background** (it must outlive your command) and leave it running for the whole iteration:
+   ```bash
+   bun run review renders/<name>.mp4 --no-open      # add --port 5300 if 5199 is taken by another video
+   ```
+3. **Post the link in chat**: `http://localhost:<port>/`, plus one line on how to use it: pause on a frame, type and/or draw, Add note, then tell me "notes are in". If you're on a remote machine or sandbox, say where it runs, since localhost may not reach the user.
+
+When the user says the notes are in:
 ```bash
-bun scripts/review/review.mjs renders/<name>.mp4         # user opens, comments, draws on frames
-bun scripts/review/review.mjs renders/<name>.mp4 --list  # agent: open notes + annotated frame PNGs
-bun scripts/review/review.mjs renders/<name>.mp4 --done <id> --reply "moved rival 0.6 s behind"
+bun run review renders/<name>.mp4 --list                                   # open notes + annotated frame PNGs
+bun run review renders/<name>.mp4 --done <id> --reply "moved rival 0.6 s behind"
 ```
-Read every `*.annotated.png` (exact frame + strokes) before fixing. Each note carries version, frame, time, and the active director beat. After fixes, **re-render to the same output path**: the running review server archives it as the next version (v2, v3…) and the user's browser switches to it with a clean sheet (old notes stay on their version). Close the fixed notes with `--done … --reply`. Details: `references/review.md`.
+Read every `*.annotated.png` (exact frame + strokes) before fixing. Each note carries version, frame, time, and the active director beat. After fixes, **re-render to the same output path**: the running server archives it as the next version (v2, v3…) and the user's browser switches to it with a clean sheet (old notes stay on their version). Close the fixed notes with `--done … --reply`, then post the link again with what changed. Don't restart the server between versions. Details: `references/review.md`.
 
 ## Gotchas
 
