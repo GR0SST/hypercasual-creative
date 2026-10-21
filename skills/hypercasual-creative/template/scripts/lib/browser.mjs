@@ -24,7 +24,9 @@ export async function launch() {
   return puppeteer.launch({
     executablePath: findChrome(),
     headless: true,
-    args: [...gpuArgs(), '--autoplay-policy=no-user-gesture-required'],
+    // Background/occluded pages composite stale canvas layers into screenshots;
+    // keep every page fully "foreground".
+    args: [...gpuArgs(), '--autoplay-policy=no-user-gesture-required', '--disable-background-timer-throttling', '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding'],
   });
 }
 
