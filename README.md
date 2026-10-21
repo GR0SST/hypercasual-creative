@@ -14,7 +14,7 @@ An agent skill for making **video ad creatives for hypercasual mobile games**: a
 
 ## Install
 ```bash
-npx skills add GR0SST/hypercasual-creative      # or: bunx skills add GR0SST/hypercasual-creative
+bunx skills add GR0SST/hypercasual-creative
 ```
 Manual: clone and link `skills/hypercasual-creative` into `~/.claude/skills/` (Claude Code) or `~/.agents/skills/`.
 
