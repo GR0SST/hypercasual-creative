@@ -1,6 +1,6 @@
 # Case study: Paper.io 2 "watermelon" creative (34 s)
 
-The creative this skill was distilled from. Built in plain three.js + puppeteer frame capture (before the HyperFrames port); the ideas carry over one to one.
+The creative this skill was distilled from. Built in plain three.js + puppeteer frame capture + a numpy mixer; the template's render and sound scripts are direct descendants.
 
 ## Beats
 - 0–3 s hook: sky drop. Space → re-entry fire → clouds → birds → impact; the camera lands exactly on the gameplay pose (no cut).

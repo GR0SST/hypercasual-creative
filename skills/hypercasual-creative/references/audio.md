@@ -1,19 +1,23 @@
 # Sound
 
 ## Pipeline
-1. `bun run bake` writes `events.json`: every gameplay event plus every director cue (`{type:'cue', label}`), in video time (`vt`).
-2. `sfx.json` maps an event type or `cue:<label>` to `{src, volume, minGap}`, plus an optional `music: {src, volume}` bed.
-3. `bun scripts/sfx-sync.mjs` rewrites `<div id="audio-track">` in `index.html` with one `<audio>` per hit (exact duration via ffprobe, greedy track lanes so nothing overlaps on a track). `hyperframes render` mixes it, so the user hears it in the review tool.
-4. For ducking the music under slow-mo, fades and EQ, use the HyperFrames audio features (`data-automation` volume lanes, `<hf-audio-group>`): see the `hyperframes-audio` skill.
+1. `bun run bake` writes `events.json`: every gameplay event plus every director cue (`{type:'cue', label}`), in video time (`vt`). `bun run render` bakes it again itself, so sound always matches the rendered sim.
+2. `sfx.json` → `roles`: one entry per sound role `{src, gain, query}`; `music` also takes `offset` (seconds into the track, to land on its drop).
+3. `src/sound.mjs` is the **sound design for this creative** (edit it like the scenario). It walks the events and calls the mixer (`scripts/lib/mixer.mjs`, a JS port of the Paper.io mixer):
+   - `fx(role, t, { gain, maxLen, ramp: [from, to], minGap })` lays a sound exactly at `t` (leading silence trimmed, peak-normalized; `maxLen` trims with a short fade; `minGap` thins pickup bursts);
+   - layer by calling several roles on one event (hit + splat, pop + shine);
+   - `music(role, { gainPoints, cutoffPoints })` with `[[t, v], …]` envelopes: duck to ~0.45 and low-pass to ~700 Hz under slow-mo, settle under the packshot, fade at the end;
+   - `mux(video, out)`: sum, tanh soft clip, `loudnorm` −14 LUFS + limiter, AAC 192k onto the video.
+4. It runs at the end of `bun run render`, or alone: `bun src/sound.mjs renders/.tmp/silent.mp4 renders/<name>.mp4` (fast; re-mix without re-rendering).
 
-Overlay-only beats (packshot taps, logo slam) should also be director cues, so they land in `events.json` and get sound from the same table.
+Overlay-only beats (packshot taps, logo slam) should also be director cues, so they land in `events.json` and get sound from the same script.
 
 ## Sourcing (Pixabay)
 The template ships no audio files. Real Pixabay picks sound far better than anything synthetic, and raw files can't go into a public repo anyway. Pixabay's CDN returns 403 to plain curl, so use a real (headed) Chrome:
 ```bash
-bun <skill>/scripts/pixabay-grab.mjs "https://pixabay.com/sound-effects/search/cartoon%20pop/" 6 assets/audio/raw
+bun scripts/pixabay-grab.mjs "https://pixabay.com/sound-effects/search/cartoon%20pop/" 6 assets/audio/raw
 ```
-It presses each Play button, captures the preview MP3 URL, and downloads it through the browser session. Grab 5–8 candidates per role, pick, then copy the winner to the `src` path from `sfx.json` (e.g. `assets/audio/pop.mp3`). `bun run sfx` prints the grab command for every role that's still missing.
+It presses each Play button, captures the preview MP3 URL, and downloads it through the browser session. Grab 5–8 candidates per role, pick, then copy the winner to the `src` path from `sfx.json` (e.g. `assets/audio/pop.mp3`). The render prints the grab command for every role that's still missing.
 
 ### Sound kit that worked (Paper.io creative)
 | Role | Pixabay search | Notes |
@@ -35,6 +39,6 @@ Roles every creative needs: pickup pop, combo/streak, big payoff, whoosh (slow-m
 
 ## Mix rules of thumb
 - Music bed around −14 to −12 dB below SFX peaks; duck 6–9 dB plus a low-pass during slow-mo.
-- Thin out repeated pops with `minGap` (≈0.07 s) and alternate 2–3 variants so it doesn't machine-gun.
+- Thin out repeated pops with `minGap` (≈0.07 s) and alternate 2–3 variants (separate roles) so it doesn't machine-gun.
 - The payoff gets the loudest hit plus a music drop; leave ~0.3 s of space before it.
 - Check the license of every track before delivery (Pixabay Content License allows use in ads; don't redistribute raw files in public repos).

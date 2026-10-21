@@ -20,5 +20,4 @@ cpSync(src, dest, { recursive: true, filter: (p) => !skip.has(relative(src, p).s
 const run = (cmd, args) => execFileSync(cmd, args, { cwd: dest, stdio: 'inherit' });
 run('bun', ['install']);
 run('bun', ['src/sim/bake.mjs']);
-run('bun', ['scripts/sfx-sync.mjs']);
-console.log(`\ncreated ${dest}\n  bunx hyperframes snapshot --at 1,5.4,9.5,12.5 --no-end   # stills\n  bunx hyperframes preview                                  # Studio\n  bunx hyperframes render -o renders/demo.mp4               # video`);
+console.log(`\ncreated ${dest}\n  bun run shot 1,5.4,9.5,12.5            # stills -> renders/shots/sheet.jpg\n  bun run render -o renders/demo.mp4     # video + sound\n  bun run review renders/demo.mp4        # frame review`);

@@ -17,15 +17,17 @@
 }
 html,
 body {
-  width: 1080px;
-  height: 1920px;
+  height: 100%;
   overflow: hidden;
   background: #0d1b26;
 }
 #root {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1080px;
+  height: 1920px;
+  transform-origin: 0 0;
   overflow: hidden;
   font-family: 'Lilita', 'Fredoka', system-ui, sans-serif;
 }
@@ -87,8 +89,8 @@ body {
   -webkit-text-stroke: 14px #fff;
 }
 
-/* Packshot. Centering uses left/right + margin auto, never a CSS transform
-   (GSAP owns transforms; hyperframes lint: gsap_css_transform_conflict). */
+/* Packshot. Centering uses left/right + margin auto, never a CSS transform:
+   GSAP owns transforms on these elements. */
 .ps > * {
   position: absolute;
   left: 0;

@@ -30,7 +30,7 @@ const mixer = new THREE.AnimationMixer(hero.scene);
 mixer.clipAction(hero.clips.find((c) => c.name === 'Running')).play();
 // view.sync(w): mixer.setTime(w.time)   (sim time, deterministic)
 ```
-- Load before the first render-critical seek: register the promise in `window.__hf.buildReady.<key>`.
+- Load before the first frame: wrap the load in `waitFor()` from `src/ready.js`, so capture waits for it.
 - `houseLook` (default) swaps every material for a house `toy()` material in the Unity color/texture, so Unity toon/custom shaders come out in our soft look. Pass `{ houseLook: false }` to keep the GLB materials.
 - Fit the size with a bounding box (Unity units vary per project), then rotate so the model faces the sim heading (template heading 0 = +X).
 

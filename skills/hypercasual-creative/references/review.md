@@ -25,7 +25,7 @@ For each note: id, version, frame, time, active beat (last director cue at that 
 
 Then:
 1. Map the note to code: beat label → cue in `scenario.js`; frame → `vt` in `events.json`; on-screen thing → view/overlay.
-2. Fix, `bun run bake`, snapshot the affected times (`bunx hyperframes snapshot --at <time>`), look at them.
+2. Fix, `bun run bake`, grab stills of the affected times (`bun run shot <t1>,<t2>`), look at them.
 3. Re-render to the **same** output path. Keep the review server running: it picks the render up as the next version by itself, so no manual backups are needed.
 4. `--done <id> --reply "what changed"` for each fixed note. Leave notes you couldn't fix open and say why.
 

@@ -1,6 +1,6 @@
 import { TAPS } from '../timing.js';
 
-// End card on the HyperFrames root GSAP timeline (seekable for free).
+// End card on a paused GSAP timeline that main.js seeks to video time.
 // The game keeps running underneath (slowed by the 'packshot' cue) and gets
 // blurred; icon pops, logo slams, CTA breathes, hand taps it twice.
 export function buildPackshot(tl, at) {

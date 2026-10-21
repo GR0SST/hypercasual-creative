@@ -4,7 +4,7 @@ import { VIEW_W, VIEW_H } from '../timing.js';
 // DOM HUD driven purely by sim state (score, world-anchored popups). Popups
 // are pooled divs re-posed every frame from popup.age, so any seek order works.
 export function createHud(root) {
-  root.innerHTML = `<div class="hud-score"><i></i><span>0</span></div><div class="hud-pops" data-layout-allow-overlap data-layout-allow-overflow></div>`;
+  root.innerHTML = `<div class="hud-score"><i></i><span>0</span></div><div class="hud-pops"></div>`;
   const score = root.querySelector('.hud-score span');
   const pill = root.querySelector('.hud-score');
   const pops = root.querySelector('.hud-pops');

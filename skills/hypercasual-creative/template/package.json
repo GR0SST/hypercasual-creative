@@ -3,14 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "bun scripts/dev.mjs",
     "bake": "bun src/sim/bake.mjs",
-    "preview": "bunx hyperframes preview",
-    "check": "bunx hyperframes check --no-contrast",
-    "snapshot": "bunx hyperframes snapshot",
-    "render": "bunx hyperframes render",
-    "review": "bun scripts/review/review.mjs",
-    "sfx": "bun scripts/sfx-sync.mjs",
-    "map": "bun src/sim/map.mjs"
+    "map": "bun src/sim/map.mjs",
+    "shot": "bun scripts/shot.mjs",
+    "render": "bun scripts/render.mjs",
+    "sound": "bun src/sound.mjs",
+    "review": "bun scripts/review/review.mjs"
   },
   "dependencies": {
     "gsap": "3.14.2",

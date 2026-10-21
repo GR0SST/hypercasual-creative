@@ -1,24 +1,24 @@
 ---
 name: hypercasual-creative
-description: Build video ad creatives (UA creatives) for hypercasual / casual mobile games as scripted three.js scenes rendered with HyperFrames, in a soft toy-like look (bright daylight, soft shadows, AO, light bloom, clearcoat materials). Use when someone wants a gameplay ad, playable-style video, UA creative, or "a video for our game" from a mechanic description, a reference video, or a Unity project with assets. Covers intake, beat sheet, faked gameplay via a director layer, stills-first sign-off, SFX synced to events, packshot/end card, rendering, and a frame-accurate review tool with comments and drawings.
+description: Build video ad creatives (UA creatives) for hypercasual / casual mobile games as scripted three.js scenes rendered frame-exact in headless Chrome, in a soft toy-like look (bright daylight, soft shadows, AO, light bloom, clearcoat materials). Use when someone wants a gameplay ad, playable-style video, UA creative, or "a video for our game" from a mechanic description, a reference video, or a Unity project with assets. Covers intake, beat sheet, faked gameplay via a director layer, stills-first sign-off, SFX synced to events, packshot/end card, rendering, and a frame-accurate review tool with comments and drawings.
 license: MIT
-compatibility: Needs bun, ffmpeg/ffprobe, Google Chrome (macOS path assumed by helper scripts) and the HyperFrames CLI (`bunx hyperframes`). Works best with the HyperFrames skills installed (hyperframes, hyperframes-core, hyperframes-animation).
+compatibility: Needs bun, ffmpeg/ffprobe and Google Chrome (macOS path assumed; override with CHROME=). Blender only for Unity export. No video framework: the project renders itself.
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Hypercasual creative
 
-Make a 9:16 gameplay ad for a mobile game that looks like the game (or better) without rebuilding the game. The output is a HyperFrames project: three.js gameplay scene + DOM/GSAP overlays + SFX, rendered to MP4 and reviewed frame by frame in the browser.
+Make a 9:16 gameplay ad for a mobile game that looks like the game (or better) without rebuilding the game. The output is a small web project: three.js gameplay scene + DOM/GSAP overlays, rendered to MP4 by its own parallel frame capture, with sound mixed sample-accurately from the sim's event log, and reviewed frame by frame in our review tool.
 
 ## Core rules
 
 0. **Beat table first, then STOP.** Before building anything (no scenario code, no renders), post the beat table in chat and end your turn. Wait for the user's OK or edits. A request like "make a creative for X" is NOT approval of the beats. Skip this only if the user explicitly says to build without approval.
 1. **It is a video, not a game. Fake it.** Re-implement only the rules that are cheaper to run than to fake. Everything that has to land on a beat (a kill, a near miss, a big capture, a growth burst) is a director cue that can override any rule: teleport, pre-stamp land, force an event, slow-mo, hide a swap under an FX burst. If faking reads the same on video, fake it. Read `references/fake-it.md`.
 2. **House look is fixed**: soft bright daylight, wide soft shadows, GTAO contact shadows, a *little* bloom (people asked for less every time), saturated pastel palette, clearcoat toy materials, thick stroked toy typography. The template already has it; don't redesign the renderer per project. Read `references/look.md` before touching lights or materials.
-3. **Stills in chat, then video in OUR review tool.** Show key-frame snapshots in chat for layout sign-off. After that, the user reviews video only in `scripts/review` (frame comments + drawing), **never in HyperFrames Studio/preview**. Renders are cheap (≈1.2 s per second of video), so don't ask permission to render a draft: render it, start the review server, post its link. (This doesn't replace rule 0: the beat table is still approved before building.) This overrides the HyperFrames skills' "open Studio preview, then ask before render" step.
+3. **Stills in chat, then video in OUR review tool.** Show key-frame snapshots in chat for layout sign-off. After that, the user reviews video only in `scripts/review` (frame comments + drawing); `bun run dev` is for your own debugging. Renders are cheap (≈1.4 s per second of 60 fps video incl. sound), so don't ask permission to render a draft: render it, start the review server, post its link. (This doesn't replace rule 0: the beat table is still approved before building.)
 4. **Deterministic and seekable.** Sim = plain data stepped at fixed dt, replayed on backward seeks; views are stateless; FX randomness uses its own RNG so FX tweaks never change gameplay. Read `references/seek-sim.md`.
-5. **60 fps by default.** Root `data-fps="60"` + `FPS = 60` in `timing.js`; the sim steps at 1/60, so each output frame is exactly one sim step. Drop to 30 only when a network demands it.
+5. **60 fps by default.** `FPS = 60` in `timing.js`; the sim steps at 1/60, so each output frame is exactly one sim step. Drop to 30 only when a network demands it.
 6. **Once the hero's route/timing is approved, don't change it.** Reshape the world around it (move enemies, stamp land, retime pickups) instead.
 
 ## Workflow
@@ -52,22 +52,25 @@ The template is a working 14 s demo (blob eats gems, combo, slow-mo near miss, b
 - `src/sim/world.js`: game state and (fake) rules. Plain data only.
 - `src/sim/scenario.js`: the script: hero route, pre-rolled path, dressing (pickups/threats placed where the hero WILL be), director cues.
 - `src/view/*`: three.js meshes that pose from sim state (`actors.js` for the hero/props, `environment.js` for the world).
-- `src/overlay/*`: HUD + popups (from sim state) and packshot (GSAP on the root timeline).
-- `src/timing.js`: FPS, packshot time, duration. Keep `data-duration` in `index.html` equal to `DURATION`.
+- `src/overlay/*`: HUD + popups (from sim state) and packshot (paused GSAP timeline, seeked to video time).
+- `src/sound.mjs`: sound design (event → sound, layers, music ducking).
+- `src/timing.js`: FPS, packshot time, duration (single source of truth).
+- `src/main.js`: `renderAt(t)` = replay sim to t → pose views → seek GSAP → draw. Register async loads with `waitFor()` from `src/ready.js`.
 
 ### 4. Iterate on timing headless, then stills
 - `bun run bake` prints positions/score per 0.5 s and every cue/event. Fix beat timing here first; it's instant.
 - `bun run map 2,4.75,5.6,9.5` draws a top-down map of the sim at those times → `renders/map.png` (planned and travelled hero path, pickups, rivals and their runs, particles). Use it to check *where* things are on each beat (does the threat cross behind the hero, are pickups on the route) without rendering. Add the game's own layers (territory, trails…) in `src/sim/map.mjs` → GAME LAYERS.
-- `bunx hyperframes snapshot --at 1,2.2,5.4,9.5,12.5 --no-end` → look at the contact sheet, then show the user the frames in chat for sign-off.
-- `bunx hyperframes preview` (Studio) is for **your own** debugging only. Don't send its link to the user; the user's review surface is step 7.
+- `bun run shot 1,2.2,5.4,9.5,12.5` → `renders/shots/t<time>.png` + `renders/shots/sheet.jpg`. Look at the sheet, then show the user the frames in chat for sign-off.
+- `bun run dev` serves a live, looping preview (`?t=5.4` holds a still) for your own debugging. Don't send it to the user; the user's review surface is step 7.
 
 ### 5. Sound
-The template ships **no sounds**. Every role in `sfx.json` has a Pixabay search `query` that worked before. Grab candidates with `scripts/pixabay-grab.mjs`, pick by listening (Gemini if available), and save the winners under the `src` names. Then `bun run bake && bun run sfx` turns `events.json` + `sfx.json` into `<audio>` clips in `index.html` (event type or `cue:<label>` → sound). Missing files are skipped with the grab command printed. Details: `references/audio.md`.
+The template ships **no sounds**. Every role in `sfx.json` has a Pixabay search `query` that worked before. Grab candidates with `scripts/pixabay-grab.mjs` (in the project), pick (listen if a tool can), and save the winners under the `src` names. `src/sound.mjs` is the sound design: it reads `events.json` (every gameplay event and director cue, in video time) and lays roles sample-accurately, layers hits, ducks + muffles the music under slow-mo, adds end-card stings, then soft-clips and loudness-normalizes (−14 LUFS). Edit it per creative like the scenario. It runs automatically at the end of `bun run render`; roles without a file are skipped with the grab command printed. Details: `references/audio.md`.
 
 ### 6. Render
 ```bash
-bunx hyperframes lint && bunx hyperframes render -o renders/<name>.mp4
+bun run render -o renders/<name>.mp4        # [--workers 6] [--fps 30] [--no-sound]
 ```
+Splits the frames across parallel headless Chrome pages (each replays the sim to its chunk start), encodes chunks with ffmpeg, concatenates, mixes sound.
 Keep one output path per creative. The review server versions every render of that path (`review/<name>/vN.mp4`), so nothing approved is lost. Draft renders need no approval: as soon as the stills are signed off, render and go to step 7.
 
 ### 7. Review loop
@@ -88,17 +91,16 @@ Read every `*.annotated.png` (exact frame + strokes) before fixing. Each note ca
 
 ## Gotchas
 
-- HyperFrames lint only sees inline scripts: the root timeline is registered inline in `index.html`, the module appends to it. Keep it that way.
-- Never put a CSS `transform` on an element GSAP animates (lint `gsap_css_transform_conflict`). Center with `left/right/margin:auto`.
+- Never put a CSS `transform` on an element GSAP animates (they fight). Center with `left/right/margin:auto`.
 - No `Math.random`, `Date.now`, `performance.now` or rAF loops in render-critical code. Use `sim/rng.js`.
 - Views must not accumulate state across frames (trails, particles, popups all come from sim state).
 - Render workers seek to chunk starts in parallel; sim replay from 0 must be cheap (keep sim < ~5 ms per simulated second; add checkpoints if heavier).
-- `bunx` works where `npx` may not (root-owned npm cache on some machines).
-- `hyperframes check` contrast audit ignores `-webkit-text-stroke`, so stroked toy text always "fails"; use `bun run check` (`--no-contrast`) and judge readability on stills. Intentional overlaps (popups, hand over CTA) carry `data-layout-allow-*` attributes.
-- Fonts: ship local `@font-face` files (lint `font_family_without_font_face`).
+- Anything async the first frame needs (GLB, textures, clip JSON) goes through `waitFor(promise)`; capture waits for fonts + all of it before frame 0.
+- Check chunk seams after a render: with 6 workers on 840 frames, frames 139/140 and 279/280 must be continuous.
+- Fonts: ship local `@font-face` files; use the game's own font when the Unity project has one.
 
 ## Files
 
-- `template/`: the project scaffold (copied by `scripts/new-project.mjs`)
-- `scripts/new-project.mjs`, `scripts/ref-breakdown.sh`, `scripts/pixabay-grab.mjs`, `scripts/unity/unity.mjs` (+ `fbx2glb.py`, fallback `CreativeExport.cs`)
+- `template/`: the project scaffold (copied by `scripts/new-project.mjs`); its `scripts/` has `render`, `shot`, `dev`, `pixabay-grab`, `review/`, `lib/mixer`
+- `scripts/new-project.mjs`, `scripts/ref-breakdown.sh`, `scripts/unity/unity.mjs` (+ `fbx2glb.py`, fallback `CreativeExport.cs`)
 - `references/`: `fake-it.md`, `look.md`, `seek-sim.md`, `beats.md`, `intake.md`, `unity-assets.md`, `audio.md`, `review.md`, `case-paperio.md` (the creative this skill was distilled from)

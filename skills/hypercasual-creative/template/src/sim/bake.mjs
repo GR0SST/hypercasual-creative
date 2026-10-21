@@ -1,7 +1,7 @@
 // Runs the sim headless (no browser) and writes the event timeline:
 //   bun src/sim/bake.mjs            -> events.json (video time `vt` per event)
 // Use it to check beat timing before rendering anything, and as the source
-// for SFX placement (scripts/sfx-sync.mjs).
+// for sound placement (src/sound.mjs).
 import { writeFileSync } from 'node:fs';
 import { buildScenario } from './scenario.js';
 import { DURATION, SIM_DT } from '../timing.js';

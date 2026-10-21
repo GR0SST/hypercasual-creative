@@ -1,5 +1,4 @@
-// Single source of truth for the cut. Keep index.html's root data-duration
-// equal to DURATION (lint needs it as a literal there).
+// Single source of truth for the cut (render, sound, review all read it).
 // Default output 60 fps (smooth phone playback; sim also steps at 1/60, one step per frame).
 export const FPS = 60;
 export const PACKSHOT_AT = 10.6;

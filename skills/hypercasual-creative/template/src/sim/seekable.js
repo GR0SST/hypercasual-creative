@@ -1,5 +1,5 @@
-// HyperFrames seeks to arbitrary times (Studio scrubbing, parallel render
-// workers). Our sim is stateful and stepped at a fixed dt, so seeking is:
+// Frames are requested at arbitrary times (parallel render workers start
+// mid-video, stills jump around). Our sim is stateful and stepped at a fixed dt, so seeking is:
 // forward = keep stepping, backward = rebuild from scratch and replay.
 // Replay is cheap because the sim is plain data (no three.js objects) —
 // keep it that way: views read sim state, they never own gameplay state.
