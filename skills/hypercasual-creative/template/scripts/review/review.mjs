@@ -12,7 +12,9 @@
 // what the agent reads.
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, statSync } from 'node:fs';
 import { basename, dirname, join, resolve, extname } from 'node:path';
-import { execFileSync, spawn } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { openUrl } from '../lib/platform.mjs';
 
 const args = process.argv.slice(2);
 const videoArg = args.find((a) => !a.startsWith('--') && /\.(mp4|mov|webm)$/i.test(a));
@@ -127,7 +129,7 @@ setInterval(() => {
   lastSize = size;
 }, 1500);
 
-const UI = readFileSync(join(dirname(new URL(import.meta.url).pathname), 'index.html'), 'utf8');
+const UI = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'index.html'), 'utf8');
 const port = parseInt(flag('--port') ?? '5199', 10);
 
 function videoResponse(req, v) {
@@ -202,4 +204,4 @@ Bun.serve({
 const link = `http://localhost:${port}/`;
 const versions = loadVersions();
 console.log(`review: ${link}  (${NAME}, v${versions[versions.length - 1]?.v ?? '?'}; watching ${relative(VIDEO)} for new renders)\nnotes:  ${relative(NOTES)}`);
-if (!flag('--no-open')) spawn('open', [link], { stdio: 'ignore', detached: true }).unref();
+if (!flag('--no-open')) openUrl(link);

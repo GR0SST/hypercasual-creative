@@ -1,10 +1,9 @@
 // Shared by shot/render: serve the project, open pages in headless Chrome
-// (GPU via Metal on macOS), wait until the creative says it's ready.
+// (hardware GPU: Metal on macOS, D3D11 on Windows), wait until the creative says it's ready.
 import puppeteer from 'puppeteer-core';
 import { existsSync } from 'node:fs';
-import { extname, join, resolve } from 'node:path';
-
-const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+import { extname, join, resolve, sep } from 'node:path';
+import { findChrome, gpuArgs } from './platform.mjs';
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.glb': 'model/gltf-binary', '.ttf': 'font/ttf', '.otf': 'font/otf', '.woff2': 'font/woff2', '.svg': 'image/svg+xml' };
 
 export function serve(dir = process.cwd(), port = 0) {
@@ -14,7 +13,7 @@ export function serve(dir = process.cwd(), port = 0) {
     fetch(req) {
       const path = decodeURIComponent(new URL(req.url).pathname);
       const file = join(root, path === '/' ? 'index.html' : path);
-      if (!file.startsWith(root) || !existsSync(file)) return new Response('not found', { status: 404 });
+      if ((file !== root && !file.startsWith(root + sep)) || !existsSync(file)) return new Response('not found', { status: 404 });
       return new Response(Bun.file(file), { headers: { 'Content-Type': TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream', 'Cache-Control': 'no-store' } });
     },
   });
@@ -23,9 +22,9 @@ export function serve(dir = process.cwd(), port = 0) {
 
 export async function launch() {
   return puppeteer.launch({
-    executablePath: CHROME,
+    executablePath: findChrome(),
     headless: true,
-    args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'],
+    args: [...gpuArgs(), '--autoplay-policy=no-user-gesture-required'],
   });
 }
 

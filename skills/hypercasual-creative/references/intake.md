@@ -12,7 +12,7 @@ Then write `BRIEF.md` and a beat table (`beats.md`).
 
 ## B. Reference video
 ```bash
-bash <skill>/scripts/ref-breakdown.sh path/to/ref.mp4      # -> ref/<name>/
+bun <skill>/scripts/ref-breakdown.mjs path/to/ref.mp4      # -> ref/<name>/
 ```
 Output: `cuts.txt` (scene-change timestamps), `cut_###.jpg` (first frame of every shot), `sec_###.jpg` (1 frame per second), `sheet.jpg` (contact sheet). Read the sheet first, then individual frames where something happens.
 If a video-capable model is available (e.g. Gemini with `GEMINI_API_KEY`), also ask it for a timed description of motion, camera and sound, because stills miss timing and easing.

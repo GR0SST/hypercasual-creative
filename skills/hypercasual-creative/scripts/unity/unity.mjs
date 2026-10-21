@@ -9,7 +9,8 @@
 // <asset> = path relative to the project (Assets/…/Player.prefab or …/hero.fbx).
 // The GUID index is cached in ~/.cache/hypercasual-creative/unity/.
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync, copyFileSync } from 'node:fs';
-import { basename, dirname, extname, join, relative, resolve } from 'node:path';
+import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { homedir } from 'node:os';
@@ -25,7 +26,7 @@ const flag = (name) => {
   const i = rest.indexOf(name);
   return i < 0 ? undefined : (rest[i + 1] ?? true);
 };
-const positional = rest.filter((a, i) => !a.startsWith('--') && !(i > 0 && rest[i - 1].startsWith('--') && rest[i - 1] !== '--json'));
+const positional = rest.map((a) => a.replace(/\\/g, '/')).filter((a, i) => !a.startsWith('--') && !(i > 0 && rest[i - 1].startsWith('--') && rest[i - 1] !== '--json'));
 
 const KIND = {
   '.prefab': 'prefab', '.fbx': 'model', '.obj': 'model', '.blend': 'model', '.dae': 'model', '.gltf': 'model', '.glb': 'model',
@@ -52,7 +53,8 @@ function buildIndex() {
     const metaPath = join(PROJ, 'Assets', rel);
     const m = readFileSync(metaPath, 'utf8').match(/^guid: ([0-9a-f]{32})/m);
     if (!m) continue;
-    const path = `Assets/${rel.slice(0, -5)}`;
+    // Unity paths always use '/', also on Windows (readdirSync returns '\\' there).
+    const path = `Assets/${rel.slice(0, -5).split(sep).join('/')}`;
     const ext = extname(path).toLowerCase();
     // Folders have .meta files too; everything else is indexed (unknown ext = 'other').
     if (!ext && statSync(join(PROJ, path)).isDirectory()) continue;
@@ -322,6 +324,32 @@ function convertAnim(path, { keepRoot = false } = {}) {
   return { name, duration, tracks, uuid: createHash('md5').update(path).digest('hex') };
 }
 
+// ---------- platform helpers ----------
+// Blender CLI: BLENDER=<path>, else the usual install locations, else PATH.
+function findBlender() {
+  if (process.env.BLENDER) return process.env.BLENDER;
+  if (process.platform === 'darwin' && existsSync('/Applications/Blender.app/Contents/MacOS/Blender')) return '/Applications/Blender.app/Contents/MacOS/Blender';
+  if (process.platform === 'win32') {
+    for (const base of [process.env.PROGRAMFILES, process.env['PROGRAMFILES(X86)']].filter(Boolean)) {
+      const dir = join(base, 'Blender Foundation');
+      if (!existsSync(dir)) continue;
+      const versions = readdirSync(dir).filter((d) => existsSync(join(dir, d, 'blender.exe'))).sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+      if (versions.length) return join(dir, versions[0], 'blender.exe');
+    }
+  }
+  return 'blender';
+}
+
+// PSD/TGA/TIF -> PNG with ffmpeg (all platforms); macOS sips as a fallback.
+function toPng(src, out) {
+  try {
+    execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', src, '-frames:v', '1', out], { stdio: 'ignore' });
+  } catch (e) {
+    if (process.platform !== 'darwin') throw new Error(`could not convert ${src} to PNG: ${e.message}`);
+    execFileSync('sips', ['-s', 'format', 'png', src, '--out', out], { stdio: 'ignore' });
+  }
+}
+
 // ---------- commands ----------
 const all = Object.values(INDEX.assets);
 const ours = (a) => !VENDOR.test('/' + a.path + '/');
@@ -405,8 +433,8 @@ if (cmd === 'scan') {
   mkdirSync(join(outDir, 'textures'), { recursive: true });
   const deps = a.kind === 'prefab' ? prefabDeps(path) : { prefab: null, renderers: [], animations: [], nested: [{ source: path, kind: 'model', materialOverrides: [] }] };
   const models = [...collectModels(deps)];
-  const blender = process.env.BLENDER ?? (existsSync('/Applications/Blender.app/Contents/MacOS/Blender') ? '/Applications/Blender.app/Contents/MacOS/Blender' : 'blender');
-  const script = join(dirname(new URL(import.meta.url).pathname), 'fbx2glb.py');
+  const blender = findBlender();
+  const script = join(dirname(fileURLToPath(import.meta.url)), 'fbx2glb.py');
   const glbs = {};
   for (const m of models) {
     const out = join(outDir, basename(m, extname(m)) + '.glb');
@@ -415,7 +443,7 @@ if (cmd === 'scan') {
       console.log(`blender: ${m}`);
       execFileSync(blender, ['-b', '--factory-startup', '-P', script, '--', abs(m), out], { stdio: ['ignore', 'ignore', 'inherit'] });
     }
-    glbs[m] = relative(outDir, out);
+    glbs[m] = relative(outDir, out).split(sep).join('/'); // URL-style, also on Windows
   }
   // Textures -> PNG next to the GLBs.
   const texMap = {};
@@ -424,8 +452,8 @@ if (cmd === 'scan') {
     if (!m.texture || texMap[m.texture]) continue;
     const out = join(outDir, 'textures', basename(m.texture, extname(m.texture)) + '.png');
     if (extname(m.texture).toLowerCase() === '.png') copyFileSync(abs(m.texture), out);
-    else execFileSync('sips', ['-s', 'format', 'png', abs(m.texture), '--out', out], { stdio: 'ignore' });
-    texMap[m.texture] = relative(outDir, out);
+    else toPng(abs(m.texture), out);
+    texMap[m.texture] = relative(outDir, out).split(sep).join('/');
   }
   const mat = (m) => ({ name: m.name, color: m.color, shadowColor: m.shadowColor, texture: m.texture ? texMap[m.texture] : undefined, unityShader: m.shader });
   const manifest = {

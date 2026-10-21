@@ -2,9 +2,9 @@
 name: hypercasual-creative
 description: Build video ad creatives (UA creatives) for hypercasual / casual mobile games as scripted three.js scenes rendered frame-exact in headless Chrome, in a soft toy-like look (bright daylight, soft shadows, AO, light bloom, clearcoat materials). Use when someone wants a gameplay ad, playable-style video, UA creative, or "a video for our game" from a mechanic description, a reference video, or a Unity project with assets. Covers intake, beat sheet, faked gameplay via a director layer, stills-first sign-off, SFX synced to events, packshot/end card, rendering, and a frame-accurate review tool with comments and drawings.
 license: MIT
-compatibility: Needs bun, ffmpeg/ffprobe and Google Chrome (macOS path assumed; override with CHROME=). Blender only for Unity export. No video framework: the project renders itself.
+compatibility: macOS and Windows (Linux should work, untested). Needs bun, ffmpeg/ffprobe on PATH and Google Chrome (or Edge/Chromium; auto-detected, override with CHROME=). Blender only for Unity export (auto-detected, override with BLENDER=). No video framework: the project renders itself.
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Hypercasual creative
@@ -26,7 +26,7 @@ Make a 9:16 gameplay ad for a mobile game that looks like the game (or better) w
 ### 1. Intake → brief
 Inputs come in three shapes; mix freely. Details: `references/intake.md`.
 - **Text description of the mechanic**: ask only what changes the video (core verb, fail state, progression, the satisfying moment, hero look, game name/icon, length).
-- **Reference video** (existing ad or gameplay capture): run `scripts/ref-breakdown.sh <video>` for scene cuts + contact sheet + per-second frames; watch them, then write down mechanics, camera, HUD, pacing. If the user says "like this but…", copy the structure, not the hook.
+- **Reference video** (existing ad or gameplay capture): run `scripts/ref-breakdown.mjs <video>` for scene cuts + contact sheet + per-second frames; watch them, then write down mechanics, camera, HUD, pacing. If the user says "like this but…", copy the structure, not the hook.
 - **Unity project**: explore it yourself with `scripts/unity/unity.mjs` (`scan` → `find`/`deps` → `export`): prefabs → GLB + material colors + converted `.anim` clips, loaded with `loadUnityModel()` from `template/src/view/unity.js`. Also take the icon and fonts. See `references/unity-assets.md`. Use real assets whenever they exist; placeholders only until then.
 
 Write `BRIEF.md` in the project: game, mechanic, hero, rivals, length (15/30 s), hook idea, payoff, packshot copy, CTA.
@@ -102,5 +102,5 @@ Read every `*.annotated.png` (exact frame + strokes) before fixing. Each note ca
 ## Files
 
 - `template/`: the project scaffold (copied by `scripts/new-project.mjs`); its `scripts/` has `render`, `shot`, `dev`, `pixabay-grab`, `review/`, `lib/mixer`
-- `scripts/new-project.mjs`, `scripts/ref-breakdown.sh`, `scripts/unity/unity.mjs` (+ `fbx2glb.py`, fallback `CreativeExport.cs`)
+- `scripts/new-project.mjs`, `scripts/ref-breakdown.mjs`, `scripts/unity/unity.mjs` (+ `fbx2glb.py`, fallback `CreativeExport.cs`)
 - `references/`: `fake-it.md`, `look.md`, `seek-sim.md`, `beats.md`, `intake.md`, `unity-assets.md`, `audio.md`, `review.md`, `case-paperio.md` (the creative this skill was distilled from)

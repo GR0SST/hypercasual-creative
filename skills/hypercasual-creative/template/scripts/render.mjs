@@ -22,7 +22,7 @@ mkdirSync(TMP, { recursive: true });
 mkdirSync(dirname(OUT), { recursive: true });
 
 // Events for the sound mix come from the same deterministic sim.
-execFileSync('bun', ['src/sim/bake.mjs'], { stdio: 'ignore' });
+execFileSync(process.execPath, ['src/sim/bake.mjs'], { stdio: 'ignore' });
 
 const srv = serve();
 const browser = await launch();
@@ -61,7 +61,7 @@ try {
   console.log(`\nvideo: ${TOTAL} frames @ ${FPS} fps, ${chunks.length} workers, ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 
   if (!args.includes('--no-sound') && existsSync('src/sound.mjs')) {
-    execFileSync('bun', ['src/sound.mjs', silent, OUT], { stdio: 'inherit' });
+    execFileSync(process.execPath, ['src/sound.mjs', silent, OUT], { stdio: 'inherit' });
   } else {
     execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', silent, '-c', 'copy', OUT]);
   }

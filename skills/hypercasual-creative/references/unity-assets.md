@@ -17,7 +17,7 @@ bun $S/unity.mjs export $U "Assets/…/Player.prefab" --out assets/models   # 4.
 3. **deps** `<prefab>` [`--json`]: renderers with hierarchy path, source model, **material colors** (`_BaseColor`/`_Color`…, plus toon shadow color `_SColor`), textures and shader; animator controller and its clips; nested prefabs/models with the **bone they hang off**. Parts that are hidden in the game (`m_IsActive: 0`, disabled renderer) are marked `(hidden in game)` and skipped on export. Pick the right prefab here before exporting: variants and old/"Trash" copies are common.
 4. **export** `<prefab|model>` `--out <dir>`:
    - every visible model → `<name>.glb` (Blender, with FBX-embedded animations);
-   - textures → PNG (`sips` converts PSD/TGA);
+   - textures → PNG (ffmpeg converts PSD/TGA/TIF);
    - Unity `.anim` clips from the animator → `<name>.anims.json` (three.js AnimationClip JSON; root node skipped unless `--keep-root`);
    - `<name>.unity.json` manifest: renderers → materials (by node name and slot), `attachments` (nested parts: parent bone + local TRS), `modelMaterials` (FBX material name → Unity material, from the FBX `.meta` remaps), clips file.
 

@@ -14,9 +14,10 @@ if (!url) {
   process.exit(1);
 }
 const max = parseInt(maxArg ?? '8', 10);
-const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+import { findChrome } from './lib/platform.mjs';
+
 const browser = await puppeteer.launch({
-  executablePath: CHROME,
+  executablePath: findChrome(),
   headless: false,
   args: ['--window-size=1300,900', '--disable-blink-features=AutomationControlled', '--autoplay-policy=no-user-gesture-required'],
 });
