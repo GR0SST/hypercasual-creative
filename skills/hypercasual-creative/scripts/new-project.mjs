@@ -16,7 +16,8 @@ if (existsSync(dest) && readdirSync(dest).length) {
 }
 const src = join(dirname(fileURLToPath(import.meta.url)), '..', 'template');
 // Generated/local stuff at the template ROOT only (scripts/review must be copied).
-const skip = new Set(['node_modules', 'renders', 'review', '.hyperframes', 'events.json', 'bun.lock']);
+// CLAUDE.md is a symlink in the template; it's recreated below, not copied.
+const skip = new Set(['node_modules', 'renders', 'review', '.hyperframes', 'events.json', 'bun.lock', 'CLAUDE.md']);
 cpSync(src, dest, { recursive: true, filter: (p) => !skip.has(relative(src, p).split(sep)[0]) });
 // Project memory for agents: AGENTS.md (rules, review, state) + CLAUDE.md -> AGENTS.md.
 // Windows symlinks need admin/dev mode, so fall back to a Claude Code import.
