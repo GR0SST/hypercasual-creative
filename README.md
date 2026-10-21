@@ -18,7 +18,7 @@ bunx skills add GR0SST/hypercasual-creative
 ```
 Manual: clone and link `skills/hypercasual-creative` into `~/.claude/skills/` (Claude Code) or `~/.agents/skills/`.
 
-Requirements (macOS or Windows): [bun](https://bun.sh) and Google Chrome (Edge/Chromium also work). Blender only for Unity export.
+Requirements (macOS or Windows): [bun](https://bun.sh) and Google Chrome (Edge/Chromium also work). Blender only for Unity export. Optional: [video-perception](https://github.com/GR0SST/video-perception) (`bunx skills add GR0SST/video-perception`, needs a fal.ai key) lets the agent listen to sounds and watch renders; the agent offers it once.
 
 ffmpeg is not required: if it's installed, it's used; if not, a static ffmpeg is downloaded once per machine (~90 MB, into `~/.cache/hypercasual-creative/`) the first time it's needed.
 

@@ -49,3 +49,4 @@ Keep this short and current; it's how the next thread knows where we are.
 - Beat table: not approved yet
 - Current render: none
 - Open notes: none
+- video-perception (optional skill, offer once): not offered yet

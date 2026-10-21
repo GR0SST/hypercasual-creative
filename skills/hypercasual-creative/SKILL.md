@@ -4,7 +4,7 @@ description: Build video ad creatives (UA creatives) for hypercasual / casual mo
 license: MIT
 compatibility: macOS and Windows (Linux should work, untested). Needs bun and Google Chrome (or Edge/Chromium; auto-detected, override with CHROME=). ffmpeg/ffprobe: the system ones if installed, otherwise a static build is downloaded once per machine to ~/.cache/hypercasual-creative/ (override with FFMPEG=/FFPROBE=). Blender only for Unity export (auto-detected, override with BLENDER=). No video framework: the project renders itself.
 metadata:
-  version: "0.3.1"
+  version: "0.3.2"
 ---
 
 # Hypercasual creative
@@ -66,7 +66,7 @@ The template is a working 14 s demo (blob eats gems, combo, slow-mo near miss, b
 - `bun run dev` serves a live, looping preview (`?t=5.4` holds a still) for your own debugging. Don't send it to the user; the user's review surface is step 7.
 
 ### 5. Sound
-The template ships **no sounds**. Every role in `sfx.json` has a Pixabay search `query` that worked before. Grab candidates with `scripts/pixabay-grab.mjs` (in the project), pick (listen if a tool can), and save the winners under the `src` names. `src/sound.mjs` is the sound design: it reads `events.json` (every gameplay event and director cue, in video time) and lays roles sample-accurately, layers hits, ducks + muffles the music under slow-mo, adds end-card stings, then soft-clips and loudness-normalizes (−14 LUFS). Edit it per creative like the scenario. It runs automatically at the end of `bun run render`; roles without a file are skipped with the grab command printed. Details: `references/audio.md`.
+The template ships **no sounds**. Every role in `sfx.json` has a Pixabay search `query` that worked before. Grab candidates with `scripts/pixabay-grab.mjs` (in the project), pick (listen with `video-perception` if installed, see below), and save the winners under the `src` names. `src/sound.mjs` is the sound design: it reads `events.json` (every gameplay event and director cue, in video time) and lays roles sample-accurately, layers hits, ducks + muffles the music under slow-mo, adds end-card stings, then soft-clips and loudness-normalizes (−14 LUFS). Edit it per creative like the scenario. It runs automatically at the end of `bun run render`; roles without a file are skipped with the grab command printed. Details: `references/audio.md`.
 
 ### 6. Render
 ```bash
@@ -88,6 +88,14 @@ bun run review --list                                   # open notes + annotated
 bun run review --done <id> --reply "moved rival 0.6 s behind"
 ```
 Read every `*.annotated.png` (exact frame + strokes) before fixing. Each note carries version, frame, time, and the active director beat. After fixes, **re-render to the same output path**: the running server archives it as the next version (v2, v3…) and the user's browser switches to it with a clean sheet (old notes stay on their version). Close the fixed notes with `--done … --reply`, then post the link again with what changed. Don't restart the server between versions. Details: `references/review.md`.
+
+## Optional: video-perception (offer once)
+
+[`video-perception`](https://github.com/GR0SST/video-perception) is a separate skill that lets you actually **watch and listen** to video (Gemini via fal.ai: picture + audio track together). With it, SFX picks are heard instead of guessed, and you can check your own renders. It's optional and needs the user's fal.ai key (paid per request), so:
+
+- **Offer it once**, the first time sound or a render comes up, and only if it isn't already in your skill list: one line on what it gives (SFX picked by ear, sound/picture sync check, render compared to the reference) plus the install command `bunx skills add GR0SST/video-perception`. Don't install it yourself and don't push.
+- Record the answer in the project's `AGENTS.md` → `## State` (`video-perception: installed / declined`) and never ask again in this project. Declined is fine: fall back to picking by signal (`references/audio.md`).
+- When installed, use it for: ranking SFX candidates per role (audio files get wrapped into an mp4 by its CLI), checking a draft render (do the hits land on the events, is the music too loud under slow-mo, does it read like the reference), or a clip of it (`ffmpeg -ss … -t …`) to save cost. Its findings are input for you; the user's notes in the review tool still decide.
 
 ## Gotchas
 
