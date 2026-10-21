@@ -4,7 +4,7 @@ description: Build video ad creatives (UA creatives) for hypercasual / casual mo
 license: MIT
 compatibility: macOS and Windows (Linux should work, untested). Needs bun and Google Chrome (or Edge/Chromium; auto-detected, override with CHROME=). ffmpeg/ffprobe: the system ones if installed, otherwise a static build is downloaded once per machine to ~/.cache/hypercasual-creative/ (override with FFMPEG=/FFPROBE=). Blender only for Unity export (auto-detected, override with BLENDER=). No video framework: the project renders itself.
 metadata:
-  version: "0.3.0"
+  version: "0.3.1"
 ---
 
 # Hypercasual creative
@@ -48,6 +48,8 @@ After approval, write the same beats with video times into the header of `src/si
 bun <this-skill>/scripts/new-project.mjs <project-dir>
 cd <project-dir> && bun run bake          # headless sim -> events.json + beat log
 ```
+The scaffold writes `AGENTS.md` (what the project is, the rules, the loop, how review works) and `CLAUDE.md` → `AGENTS.md`, so a new thread opened in the project already knows the job. **Keep its `## State` section current** (beat table approved or not, current render path, review port, open notes, decisions the user made) every time one of these changes; add project-specific rules the user gives you to `## Rules`.
+
 The template is a working 14 s demo (blob eats gems, combo, slow-mo near miss, big gem, packshot). Replace the mechanic in place:
 - `src/sim/world.js`: game state and (fake) rules. Plain data only.
 - `src/sim/scenario.js`: the script: hero route, pre-rolled path, dressing (pickups/threats placed where the hero WILL be), director cues.

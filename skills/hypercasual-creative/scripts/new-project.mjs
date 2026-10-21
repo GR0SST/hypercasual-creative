@@ -1,7 +1,7 @@
 // Scaffold a new creative from the template.
 //   bun <skill>/scripts/new-project.mjs <dir>
-import { cpSync, existsSync, readdirSync } from 'node:fs';
-import { dirname, join, relative, resolve, sep } from 'node:path';
+import { cpSync, existsSync, readdirSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
+import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -18,8 +18,17 @@ const src = join(dirname(fileURLToPath(import.meta.url)), '..', 'template');
 // Generated/local stuff at the template ROOT only (scripts/review must be copied).
 const skip = new Set(['node_modules', 'renders', 'review', '.hyperframes', 'events.json', 'bun.lock']);
 cpSync(src, dest, { recursive: true, filter: (p) => !skip.has(relative(src, p).split(sep)[0]) });
+// Project memory for agents: AGENTS.md (rules, review, state) + CLAUDE.md -> AGENTS.md.
+// Windows symlinks need admin/dev mode, so fall back to a Claude Code import.
+const agents = join(dest, 'AGENTS.md');
+writeFileSync(agents, readFileSync(agents, 'utf8').replaceAll('{{NAME}}', basename(dest)));
+try {
+  symlinkSync('AGENTS.md', join(dest, 'CLAUDE.md'));
+} catch {
+  writeFileSync(join(dest, 'CLAUDE.md'), '@AGENTS.md\n');
+}
 const run = (cmd, args) => execFileSync(cmd, args, { cwd: dest, stdio: 'inherit' });
 // process.execPath = the bun running this script (no PATH lookup; works on Windows too).
 run(process.execPath, ['install']);
 run(process.execPath, ['src/sim/bake.mjs']);
-console.log(`\ncreated ${dest}\n  bun run shot 1,5.4,9.5,12.5            # stills -> renders/shots/sheet.jpg\n  bun run render -o renders/demo.mp4     # video + sound\n  bun run review renders/demo.mp4        # frame review`);
+console.log(`\ncreated ${dest}\n  bun run shot 1,5.4,9.5,12.5            # stills -> renders/shots/sheet.jpg\n  bun run render -o renders/demo.mp4     # video + sound\n  bun run review                         # frame review (latest render)`);
