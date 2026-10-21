@@ -2,7 +2,7 @@
 name: hypercasual-creative
 description: Build video ad creatives (UA creatives) for hypercasual / casual mobile games as scripted three.js scenes rendered frame-exact in headless Chrome, in a soft toy-like look (bright daylight, soft shadows, AO, light bloom, clearcoat materials). Use when someone wants a gameplay ad, playable-style video, UA creative, or "a video for our game" from a mechanic description, a reference video, or a Unity project with assets. Covers intake, beat sheet, faked gameplay via a director layer, stills-first sign-off, SFX synced to events, packshot/end card, rendering, and a frame-accurate review tool with comments and drawings.
 license: MIT
-compatibility: macOS and Windows (Linux should work, untested). Needs bun, ffmpeg/ffprobe on PATH and Google Chrome (or Edge/Chromium; auto-detected, override with CHROME=). Blender only for Unity export (auto-detected, override with BLENDER=). No video framework: the project renders itself.
+compatibility: macOS and Windows (Linux should work, untested). Needs bun and Google Chrome (or Edge/Chromium; auto-detected, override with CHROME=). ffmpeg/ffprobe: the system ones if installed, otherwise a static build is downloaded once per machine to ~/.cache/hypercasual-creative/ (override with FFMPEG=/FFPROBE=). Blender only for Unity export (auto-detected, override with BLENDER=). No video framework: the project renders itself.
 metadata:
   version: "0.3.0"
 ---

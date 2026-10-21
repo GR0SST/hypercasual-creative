@@ -14,6 +14,10 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { homedir } from 'node:os';
+import { ff as resolveFfmpeg } from '../../template/scripts/lib/ffmpeg.mjs';
+
+// System ffmpeg if present, else a one-time download per machine.
+const { ffmpeg: FFMPEG, ffprobe: FFPROBE } = await resolveFfmpeg();
 
 const [cmd, projArg, ...rest] = process.argv.slice(2);
 if (!cmd || !projArg) {
@@ -343,7 +347,7 @@ function findBlender() {
 // PSD/TGA/TIF -> PNG with ffmpeg (all platforms); macOS sips as a fallback.
 function toPng(src, out) {
   try {
-    execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', src, '-frames:v', '1', out], { stdio: 'ignore' });
+    execFileSync(FFMPEG, ['-v', 'error', '-y', '-i', src, '-frames:v', '1', out], { stdio: 'ignore' });
   } catch (e) {
     if (process.platform !== 'darwin') throw new Error(`could not convert ${src} to PNG: ${e.message}`);
     execFileSync('sips', ['-s', 'format', 'png', src, '--out', out], { stdio: 'ignore' });

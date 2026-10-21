@@ -4,6 +4,10 @@
 // sound design script).
 import { execFileSync } from 'node:child_process';
 import { existsSync, writeFileSync, unlinkSync } from 'node:fs';
+import { ff as resolveFfmpeg } from './ffmpeg.mjs';
+
+// System ffmpeg if present, else a one-time download per machine.
+const { ffmpeg: FFMPEG, ffprobe: FFPROBE } = await resolveFfmpeg();
 
 export const SR = 44100;
 
@@ -12,7 +16,7 @@ export function load(file, { offset = 0, duration } = {}) {
   const argv = ['-v', 'error', '-ss', String(offset)];
   if (duration) argv.push('-t', String(duration));
   argv.push('-i', file, '-f', 'f32le', '-ac', '2', '-ar', String(SR), '-');
-  const buf = execFileSync('ffmpeg', argv, { maxBuffer: 1 << 30 });
+  const buf = execFileSync(FFMPEG, argv, { maxBuffer: 1 << 30 });
   return new Float32Array(buf.buffer, buf.byteOffset, buf.byteLength / 4).slice();
 }
 
@@ -131,7 +135,7 @@ export class Mixer {
     for (let i = 0; i < mix.length; i++) mix[i] = Math.tanh(((this.musicBus?.[i] ?? 0) + this.sfx[i]) * 1.1) / k;
     const raw = `${out}.f32`;
     writeFileSync(raw, Buffer.from(mix.buffer));
-    execFileSync('ffmpeg', [
+    execFileSync(FFMPEG, [
       '-v', 'error', '-y', '-i', video, '-f', 'f32le', '-ar', String(SR), '-ac', '2', '-i', raw,
       '-af', 'loudnorm=I=-14:TP=-1.5:LRA=9,alimiter=limit=0.82:attack=2:release=50:level=disabled',
       '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-shortest', '-movflags', '+faststart', out,

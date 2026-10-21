@@ -9,6 +9,10 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { buildScenario } from './scenario.js';
 import { DURATION, SIM_DT } from '../timing.js';
+import { ff as resolveFfmpeg } from '../../scripts/lib/ffmpeg.mjs';
+
+// System ffmpeg if present, else a one-time download per machine.
+const { ffmpeg: FFMPEG, ffprobe: FFPROBE } = await resolveFfmpeg();
 
 const times = (process.argv[2] ?? Array.from({ length: Math.floor(DURATION / 2) }, (_, i) => (i + 1) * 2).join(',')).split(',').map(Number);
 const R = 36; // world half-size shown (arena radius 34 + margin)
@@ -101,5 +105,5 @@ const cols = Math.min(4, files.length);
 const inputs = files.flatMap((f) => ['-i', f]);
 const layout = files.map((_, k) => `${(k % cols) * (W + 6)}_${Math.floor(k / cols) * (W + 6)}`).join('|');
 const filter = files.length > 1 ? `${files.map((_, k) => `[${k}:v]pad=iw+6:ih+6:3:3:white[v${k}]`).join(';')};${files.map((_, k) => `[v${k}]`).join('')}xstack=inputs=${files.length}:layout=${layout}:fill=white` : 'null';
-execFileSync('ffmpeg', ['-y', '-v', 'error', ...inputs, '-filter_complex', filter, 'renders/map.png']);
+execFileSync(FFMPEG, ['-y', '-v', 'error', ...inputs, '-filter_complex', filter, 'renders/map.png']);
 console.log('renders/map.png');

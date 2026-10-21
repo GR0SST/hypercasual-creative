@@ -20,6 +20,10 @@ import { basename, dirname, join, resolve, extname } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { openUrl } from '../lib/platform.mjs';
+import { ff as resolveFfmpeg } from '../lib/ffmpeg.mjs';
+
+// System ffmpeg if present, else a one-time download per machine.
+const { ffmpeg: FFMPEG, ffprobe: FFPROBE } = await resolveFfmpeg();
 
 const args = process.argv.slice(2);
 // No path given: the most recently written video in renders/.
@@ -55,7 +59,7 @@ const vFile = (v, suffix = '.mp4') => join(DIR, `v${v}${suffix}`);
 
 function probe(file) {
   const out = JSON.parse(
-    execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height,r_frame_rate,nb_frames:format=duration', '-of', 'json', file]).toString(),
+    execFileSync(FFPROBE, ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height,r_frame_rate,nb_frames:format=duration', '-of', 'json', file]).toString(),
   );
   const s = out.streams[0];
   const [a, b] = s.r_frame_rate.split('/').map(Number);
@@ -78,7 +82,7 @@ function ensureVersion() {
   console.log(`v${v}: building scrub proxy…`);
   // Scrub proxy: every frame a keyframe, so seeks are instant (renders have
   // keyframes seconds apart). Annotations always use the archived original.
-  execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', vFile(v), '-c:v', 'libx264', '-preset', 'veryfast', '-tune', 'fastdecode', '-crf', '20', '-g', '1', '-bf', '0', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', vFile(v, '.proxy.mp4')]);
+  execFileSync(FFMPEG, ['-v', 'error', '-y', '-i', vFile(v), '-c:v', 'libx264', '-preset', 'veryfast', '-tune', 'fastdecode', '-crf', '20', '-g', '1', '-bf', '0', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', vFile(v, '.proxy.mp4')]);
   // Beat markers belong to the render they came from.
   if (existsSync('events.json')) copyFileSync('events.json', vFile(v, '.events.json'));
   versions.push({ v, fp, created: new Date().toISOString(), ...probe(vFile(v)) });
@@ -105,7 +109,7 @@ function annotate(note) {
   const argv = existsSync(draw)
     ? ['-v', 'error', '-y', '-i', src, '-i', draw, '-filter_complex', `[0:v]${sel}[f];[1:v]scale=${meta.width}:${meta.height}[d];[f][d]overlay=0:0`, '-frames:v', '1', out]
     : ['-v', 'error', '-y', '-i', src, '-vf', sel, '-frames:v', '1', out];
-  execFileSync('ffmpeg', argv);
+  execFileSync(FFMPEG, argv);
 }
 
 if (flag('--list')) {

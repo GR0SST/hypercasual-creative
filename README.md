@@ -18,17 +18,17 @@ bunx skills add GR0SST/hypercasual-creative
 ```
 Manual: clone and link `skills/hypercasual-creative` into `~/.claude/skills/` (Claude Code) or `~/.agents/skills/`.
 
-Requirements (macOS or Windows): [bun](https://bun.sh), ffmpeg/ffprobe on PATH, Google Chrome (Edge/Chromium also work), Blender (only for Unity export).
+Requirements (macOS or Windows): [bun](https://bun.sh) and Google Chrome (Edge/Chromium also work). Blender only for Unity export.
 
-macOS:
+ffmpeg is not required: if it's installed, it's used; if not, a static ffmpeg is downloaded once per machine (~90 MB, into `~/.cache/hypercasual-creative/`) the first time it's needed.
+
+Install bun — macOS:
 ```bash
 curl -fsSL https://bun.sh/install | bash
-brew install ffmpeg
 ```
 Windows (PowerShell):
 ```powershell
 powershell -c "irm bun.sh/install.ps1 | iex"
-winget install Gyan.FFmpeg
 ```
 Chrome and Blender are found in their default install locations; otherwise set `CHROME=` / `BLENDER=` to the executable.
 

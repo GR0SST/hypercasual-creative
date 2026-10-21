@@ -8,6 +8,10 @@ import { spawn, execFileSync } from 'node:child_process';
 import { availableParallelism } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { serve, launch, openCreative, shutdown } from './lib/browser.mjs';
+import { ff as resolveFfmpeg } from './lib/ffmpeg.mjs';
+
+// System ffmpeg if present, else a one-time download per machine.
+const { ffmpeg: FFMPEG, ffprobe: FFPROBE } = await resolveFfmpeg();
 
 const args = process.argv.slice(2);
 const opt = (name, dflt) => {
@@ -28,7 +32,7 @@ execFileSync(process.execPath, ['src/sim/bake.mjs'], { stdio: 'ignore' });
 // block where the canvas should be. Count frames whose bottom corners are
 // flat and that dark.
 function brokenFrames(file) {
-  const out = execFileSync('ffmpeg', ['-v', 'error', '-i', file, '-vf', "split[a][b];[a]crop=200:200:0:1700,signalstats,metadata=print:file=-[x];[b]crop=200:200:880:1700,signalstats,metadata=print:file=-[y];[x][y]hstack", '-f', 'null', '-'], { maxBuffer: 1 << 28 }).toString();
+  const out = execFileSync(FFMPEG, ['-v', 'error', '-i', file, '-vf', "split[a][b];[a]crop=200:200:0:1700,signalstats,metadata=print:file=-[x];[b]crop=200:200:880:1700,signalstats,metadata=print:file=-[y];[x][y]hstack", '-f', 'null', '-'], { maxBuffer: 1 << 28 }).toString();
   let bad = 0;
   const vals = {};
   for (const line of out.split('\n')) {
@@ -57,7 +61,7 @@ try {
   // Capture one chunk into its own mp4 with its own browser.
   async function renderChunk([a, b], i, own) {
     const c = await openCreative(own, srv.url);
-    const ff = spawn('ffmpeg', ['-v', 'error', '-y', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', '16', '-pix_fmt', 'yuv420p', '-r', String(FPS), `${TMP}/chunk${i}.mp4`], { stdio: ['pipe', 'inherit', 'inherit'] });
+    const ff = spawn(FFMPEG, ['-v', 'error', '-y', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', '16', '-pix_fmt', 'yuv420p', '-r', String(FPS), `${TMP}/chunk${i}.mp4`], { stdio: ['pipe', 'inherit', 'inherit'] });
     const closed = new Promise((r) => ff.on('close', r));
     for (let f = a; f < b; f++) {
       const buf = await c.frame(f / FPS);
@@ -90,13 +94,13 @@ try {
 
   writeFileSync(`${TMP}/list.txt`, chunks.map((_, i) => `file 'chunk${i}.mp4'`).join('\n'));
   const silent = `${TMP}/silent.mp4`;
-  execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', `${TMP}/list.txt`, '-c', 'copy', '-movflags', '+faststart', silent]);
+  execFileSync(FFMPEG, ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', `${TMP}/list.txt`, '-c', 'copy', '-movflags', '+faststart', silent]);
   console.log(`\nvideo: ${TOTAL} frames @ ${FPS} fps, ${chunks.length} workers, ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 
   if (!args.includes('--no-sound') && existsSync('src/sound.mjs')) {
     execFileSync(process.execPath, ['src/sound.mjs', silent, OUT], { stdio: 'inherit' });
   } else {
-    execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', silent, '-c', 'copy', OUT]);
+    execFileSync(FFMPEG, ['-v', 'error', '-y', '-i', silent, '-c', 'copy', OUT]);
   }
   console.log(`done: ${OUT}  (${((Date.now() - t0) / 1000).toFixed(1)}s total)`);
 } finally {

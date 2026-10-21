@@ -5,6 +5,10 @@
 import { mkdirSync, readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { ff as resolveFfmpeg } from '../template/scripts/lib/ffmpeg.mjs';
+
+// System ffmpeg if present, else a one-time download per machine.
+const { ffmpeg: FFMPEG, ffprobe: FFPROBE } = await resolveFfmpeg();
 
 const [input, outArg, thArg] = process.argv.slice(2);
 if (!input) {
@@ -14,10 +18,10 @@ if (!input) {
 const OUT = outArg ?? join('ref', basename(input, extname(input)));
 const TH = thArg ?? '0.3';
 mkdirSync(OUT, { recursive: true });
-const ff = (args, quiet = false) => execFileSync('ffmpeg', ['-v', 'error', '-y', ...args], { stdio: quiet ? 'ignore' : ['ignore', 'pipe', 'inherit'] });
+const ff = (args, quiet = false) => execFileSync(FFMPEG, ['-v', 'error', '-y', ...args], { stdio: quiet ? 'ignore' : ['ignore', 'pipe', 'inherit'] });
 const JPG = ['-q:v', '3', '-pix_fmt', 'yuvj420p'];
 
-writeFileSync(join(OUT, 'info.txt'), execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'stream=width,height,r_frame_rate:format=duration', '-of', 'compact', input]));
+writeFileSync(join(OUT, 'info.txt'), execFileSync(FFPROBE, ['-v', 'error', '-show_entries', 'stream=width,height,r_frame_rate:format=duration', '-of', 'compact', input]));
 
 // Scene cuts: timestamps + the first frame of every shot. (Filter args go
 // straight to ffmpeg, no shell, so the same code runs on Windows.)
