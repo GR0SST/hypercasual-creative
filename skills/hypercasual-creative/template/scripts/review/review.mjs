@@ -1,8 +1,13 @@
 // Frame-accurate review tool (SyncSketch-style) for rendered creatives.
 //
-//   bun scripts/review/review.mjs renders/demo.mp4        open review UI
-//   bun scripts/review/review.mjs renders/demo.mp4 --list print open notes (for the agent)
-//   bun scripts/review/review.mjs renders/demo.mp4 --done <id> [--reply "text"]
+//   bun run review                        review the latest render in renders/ (opens the browser)
+//   bun run review renders/x.mp4          review a specific video
+//   bun run review --list                 open notes + annotated frames (for the agent)
+//   bun run review --done <id> [--reply "text"]
+//
+// Safe to run any time: if a server for that video is already up, it just
+// prints the link and opens it; if the port is taken by another video, it
+// moves to the next port.
 //
 // Versions: every time the render at that path changes (agent re-rendered
 // after fixes), the server archives it as the next version (review/<name>/vN.mp4)
@@ -10,16 +15,24 @@
 // so a fresh render starts with a clean sheet; older versions stay browsable.
 // Every note also gets <id>.annotated.png = exact frame + strokes, which is
 // what the agent reads.
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, statSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, unlinkSync, statSync } from 'node:fs';
 import { basename, dirname, join, resolve, extname } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { openUrl } from '../lib/platform.mjs';
 
 const args = process.argv.slice(2);
-const videoArg = args.find((a) => !a.startsWith('--') && /\.(mp4|mov|webm)$/i.test(a));
+// No path given: the most recently written video in renders/.
+const latestRender = () =>
+  existsSync('renders')
+    ? readdirSync('renders')
+        .filter((f) => /\.(mp4|mov|webm)$/i.test(f))
+        .map((f) => join('renders', f))
+        .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs)[0]
+    : undefined;
+const videoArg = args.find((a) => !a.startsWith('--') && /\.(mp4|mov|webm)$/i.test(a)) ?? latestRender();
 if (!videoArg) {
-  console.error('usage: bun scripts/review/review.mjs <video.mp4> [--list | --done <id> [--reply text]] [--port 5199] [--no-open]');
+  console.error('no video to review: render one first (bun run render), or pass a path: bun run review renders/<name>.mp4');
   process.exit(1);
 }
 const flag = (name) => {
@@ -119,6 +132,21 @@ if (flag('--done')) {
   process.exit(0);
 }
 
+// Already running for this video? Reuse it. Port taken by another video? Next port.
+let port = parseInt(flag('--port') ?? '5199', 10);
+for (let tries = 0; tries < 20; tries++, port++) {
+  const running = await fetch(`http://localhost:${port}/api/versions`, { signal: AbortSignal.timeout(500) })
+    .then((r) => r.json())
+    .catch(() => null);
+  if (!running) break;
+  if (running.name === NAME) {
+    const link = `http://localhost:${port}/`;
+    console.log(`review: ${link}  (already running for ${NAME})`);
+    if (!flag('--no-open')) openUrl(link);
+    process.exit(0);
+  }
+}
+
 ensureVersion();
 // Watch for re-renders: archive once the file stops growing.
 let lastSize = -1;
@@ -130,7 +158,6 @@ setInterval(() => {
 }, 1500);
 
 const UI = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'index.html'), 'utf8');
-const port = parseInt(flag('--port') ?? '5199', 10);
 
 function videoResponse(req, v) {
   const file = Bun.file(vFile(v, '.proxy.mp4'));

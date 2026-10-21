@@ -45,8 +45,15 @@ bun run bake                         # headless sim: beat log + events.json
 bun run map 2,5.6,9.5                # top-down debug map of the sim
 bun run shot 1,5.4,9.5,12.5          # stills for sign-off
 bun run render -o renders/v1.mp4     # parallel render + sound mix
-bun run review renders/v1.mp4        # comment + draw on frames
+bun run review                       # comment + draw on frames (latest render)
 ```
+
+## Reviewing a creative
+In the creative's folder:
+```bash
+bun run review
+```
+Opens the latest render in your browser (http://localhost:5199/). Pause on a frame, write a note and/or draw on it, **Add note**, then tell the agent "notes are in". Safe to run any time: if the review is already running it just opens it again. After the agent re-renders, the new version appears there by itself.
 
 ## License
 MIT. Bundled fonts: SIL OFL 1.1.

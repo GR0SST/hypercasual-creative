@@ -7,4 +7,4 @@ Built from the `hypercasual-creative` skill template. Load that skill before wor
 - HUD + packshot: `src/overlay/` — packshot on the root GSAP timeline
 - Timing: `src/timing.js` · Sound design: `src/sound.mjs` (roles in `sfx.json`)
 
-Loop: `bun run bake` / `bun run map …` → `bun run shot …` → `bun run render -o renders/<name>.mp4` → `bun run review renders/<name>.mp4`.
+Loop: `bun run bake` / `bun run map …` → `bun run shot …` → `bun run render -o renders/<name>.mp4` → `bun run review` (latest render; safe to re-run).
